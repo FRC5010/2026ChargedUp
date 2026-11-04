@@ -4,11 +4,11 @@ public class Arm implements GenericSubsystem {
     private final ArmIO io;
     
     public Arm() {
-        super("arm.json");
+        
     }
    
-    public void configTestControls(Controller controller) {
-        controller.createAButton().whileTrue((armCommand(.90)));
+    public void configTestControls(Gamepad controller) {
+        controller.westFace().whileTrue((armCommand(.90)));
     }
     
 }
