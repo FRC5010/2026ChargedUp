@@ -7,12 +7,14 @@ package first.robot;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
-import com.ctre.phoenix6.signals.InvertedValue;
-
+import org.wpilib.fields.Field;
+import org.wpilib.fields.Fields;
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
+
+import com.ctre.phoenix6.signals.InvertedValue;
 
 public final class Constants {
   public enum Mode { REAL, SIM, REPLAY }
@@ -87,4 +89,10 @@ public final class Constants {
    * web UI, and its mount position as a Transform3d from robot center to lens; and the
    * simulated camera's field of view and range.
    */
+  public static final class VisionConstants {
+    //the field has everything....
+    public static final Field kTagLayout = Field.loadField(Fields.DEFAULT_FIELD);
+
+    
+  }
 }
