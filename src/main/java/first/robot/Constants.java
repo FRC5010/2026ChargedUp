@@ -4,15 +4,25 @@
 
 package first.robot;
 
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
+import static org.wpilib.units.Units.Inches;
+import static org.wpilib.units.Units.Kilograms;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
-import com.ctre.phoenix6.signals.InvertedValue;
-
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularAcceleration;
 import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
+import org.wpilib.units.measure.Mass;
+
+import com.ctre.phoenix6.signals.InvertedValue;
+
 
 public final class Constants {
   public enum Mode { REAL, SIM, REPLAY }
@@ -20,6 +30,43 @@ public final class Constants {
   /** Change kSimMode to Mode.REPLAY to re-run a log file instead of simulating fresh. */
   public static final Mode kSimMode = Mode.SIM;
   public static final Mode kCurrentMode = RobotBase.isReal() ? Mode.REAL : kSimMode;
+
+     public static final class ArmConstants {
+    public static final int kPivotMotorPort = 1; // CAN ID — change to yours
+
+    // Mechanism geometry. estimateMOI treats the arm as a uniform rod, so its
+    // length and mass are all the physics model needs.
+    public static final double kGearRatio = 50.0; // rotor : arm
+    public static final Distance kArmLength = Inches.of(20);
+    public static final Mass kArmMass = Kilograms.of(3.0);
+    
+    
+    // How far it can swing. Zero is horizontal, and that is not a free choice.
+    public static final Angle kMinAngle = Degrees.of(-20);
+    public static final Angle kMaxAngle = Degrees.of(180);
+
+    public static final AngularVelocity kMaxVelocity = DegreesPerSecond.of(180);
+    public static final AngularAcceleration kMaxAcceleration =
+        DegreesPerSecondPerSecond.of(360);
+
+    // The model: what this arm costs to hold, to move, and to speed up.
+    public static final double kArmKG = 0.25; // volts to hold it out horizontal
+    public static final double kArmKV = 6.0; // volts per arm rotation/sec
+    public static final double kArmKA = 0.055; // volts per arm rotation/sec^2
+    // The trim: whatever the model got wrong.
+    public static final double kArmKP = 60.0; // volts per rotation of error
+
+    // Where the operator actually wants it
+    public static final Angle kIntake = Degrees.of(-20);
+    public static final Angle kStowed = Degrees.of(90);
+
+    public static final Angle kTolerance = Degrees.of(2);
+
+    // The roller has no goal to profile — just a direction and a speed.
+    public static final double kIntakeSpeed = 0.6; // fraction of full output
+    public static final double kEjectSpeed = -0.6;
+  }
+
 
   // One CAN ID + one magnet offset per corner, all named, instead of
   // literals baked into the array in Drivetrain.
