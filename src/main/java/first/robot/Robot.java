@@ -14,6 +14,7 @@ import org.wpilib.system.DataLogManager;
 
 import first.robot.subsystems.Drivetrain;
 import first.robot.subsystems.Localizer;
+import first.robot.subsystems.QuestNavSubsystem;
 import first.robot.subsystems.VisionPoseProvider;
 
 /**
@@ -32,7 +33,7 @@ public class Robot extends OpModeRobot {
   // Localizer reads the drivetrain's kinematics/rotation/module positions at
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
-
+  private final QuestNavSubsystem questNav = new QuestNavSubsystem(drivetrain);
   /**
    * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
    * Replace the fake camera with two real Limelight pose providers, front and back.
@@ -68,6 +69,7 @@ public class Robot extends OpModeRobot {
   @Override
   public void robotPeriodic() {
     Scheduler.getDefault().run();
+    
   }
 
   private void logCommandStart(SchedulerEvent event) {

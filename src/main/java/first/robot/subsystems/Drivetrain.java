@@ -7,24 +7,41 @@ import java.util.function.Supplier;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
+import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
+import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.DifferentialDriveKinematics;
 import org.wpilib.math.kinematics.SwerveDriveKinematics;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.numbers.N1;
+import org.wpilib.math.numbers.N3;
 import org.wpilib.math.util.MathUtil;
+import org.wpilib.smartdashboard.Field2d;
+import org.wpilib.smartdashboard.FieldObject2d;
 import org.wpilib.telemetry.Telemetry;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
 
+
 import first.robot.Constants;
 import first.robot.Constants.DriveConstants;
 import first.robot.Constants.HeadingConstants;
+import gg.questnav.questnav.QuestNav;
 
 public class Drivetrain implements Mechanism, PoseProvider {
+  
+  private final Field2d fieldSim = new Field2d();
+  private final FieldObject2d questNavPoseObject = fieldSim.getObject("QuestNav Pose");
+ 
+         
+
   // Corner order: FL, FR, BL, BR. Pick a convention and stick to it.
   private final SwerveModule[] m_modules = new SwerveModule[] {
       makeModule(0, DriveConstants.kFrontLeftDrivePort, DriveConstants.kFrontLeftSteerPort,
@@ -53,6 +70,16 @@ public class Drivetrain implements Mechanism, PoseProvider {
     case REPLAY -> new GyroIO() {}; // inputs come from the log
   };
   private final GyroIO.GyroIOInputs m_gyroInputs = new GyroIO.GyroIOInputs();
+
+   private final SwerveDrivePoseEstimator m_poseEstimator =
+      new SwerveDrivePoseEstimator(
+        m_kinematics,
+        getRotation(),
+        getModulePositions(),
+        new Pose2d(),
+        VecBuilder.fill(0.05, 0.05, 0.05), // state std devs
+        VecBuilder.fill(0.1, 0.1, 0.1)
+      );
 
   public Drivetrain() {
     Scheduler.getDefault().addPeriodic(this::periodic);
@@ -233,5 +260,29 @@ public class Drivetrain implements Mechanism, PoseProvider {
 
     Telemetry.log("Drivetrain/HeadingDegrees", getHeadingDegrees());
     Telemetry.log("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()), Rotation2d.struct);
+    
+    m_poseEstimator.update(
+    getRotation(),
+    getModulePositions()
+  );
   }
+
+  public void setQuestNavePose(Pose2d pose) {
+    questNavPoseObject.setPose(pose);
+    }
+
+    public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+    
+    m_poseEstimator.addVisionMeasurement(visionPose, timestamp, stdDevs);
+  }
+  
+  public void resetPoseFromQuestNav(Pose2d pose) {
+    m_poseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
+  } 
+
+  public Pose2d getEstimatedPose() {
+    return m_poseEstimator.getEstimatedPosition();
+  }
+
 }
+
