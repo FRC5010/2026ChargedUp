@@ -1,7 +1,5 @@
 package first.robot.subsystems;
 
-import org.wpilib.hardware.led.LEDPattern;
-
 public enum SuperstructureState {
     UNHOMED(SuperstructureData.kUnhomed),
     IDLE(SuperstructureData.kIdle),
@@ -23,7 +21,7 @@ public enum SuperstructureState {
         m_SuperstructureData = stateParameters;
     }
 
-    public SuperstructureData pattern() {
+    public SuperstructureData state() {
         return m_SuperstructureData;
     }
 
