@@ -187,6 +187,20 @@ public class Drivetrain implements Mechanism, PoseProvider {
     }
   }
 
+  public ChassisVelocities getRobotRelativeVelocities() {
+    SwerveModuleVelocity[] states = new SwerveModuleVelocity[m_modules.length];
+    for (int i = 0; i < m_modules.length; i++) {
+      states[i] = new SwerveModuleVelocity(
+          m_modules[i].getDriveVelocityMetersPerSec(),
+          Rotation2d.fromDegrees(m_modules[i].getSteerAngleDegrees()));
+    }
+    return m_kinematics.toChassisVelocities(states);
+  }
+
+  public void driveRobotRelative(ChassisVelocities speeds) {
+    applyChassisSpeeds(speeds);
+  }
+
   public SwerveDriveKinematics getKinematics() {
     return m_kinematics;
   }
