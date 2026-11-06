@@ -3,17 +3,17 @@ package first.robot.subsystems;
 import org.wpilib.hardware.led.LEDPattern;
 
 public enum SuperstructureState {
-    UNHOMED(SuperstructureData.kIdle),
-    IDLE,
-    GROUNDCONEINTAKING,
+    UNHOMED(SuperstructureData.kUnhomed),
+    IDLE(SuperstructureData.kIdle),
+    GROUNDCONEINTAKING(SuperstructureData.kGroundConeIntaking),
     //GROUNDCUBEINTAKING,
     //HIGHCONEINTAKING,
     //HIGHCUBEINTAKING,
-    HOLDINGCONE,
+    HOLDINGCONE(SuperstructureData.kHoldingCone),
     //CUBESCORELOW,
     //CUBESCOREHIGH,
     //CUBESCOREMID,
-    CONESCORELOW;
+    CONESCORELOW(SuperstructureData.kConeScoreLow);
     //CONESCOREHIGH,
     //CONESCOREMID;
 
@@ -21,6 +21,10 @@ public enum SuperstructureState {
 
     SuperstructureState(SuperstructureData stateParameters) {
         m_SuperstructureData = stateParameters;
+    }
+
+    public SuperstructureData pattern() {
+        return m_SuperstructureData;
     }
 
     public boolean canGoTo(SuperstructureState next) {
@@ -40,8 +44,13 @@ public enum SuperstructureState {
 what im already thinking is to make a data object that stores "paramaters" that are passed in through the robot's
 different subsystems
 
+
 then ill assign each enum type to an instance of the object that is specific to that state
 like:
 IDLE = new robotState(armAngle: #, armExtensionL);
+^^^
+|||
+|||
+this is done
 
 */
