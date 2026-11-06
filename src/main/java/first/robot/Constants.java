@@ -31,7 +31,7 @@ public final class Constants {
   public static final Mode kSimMode = Mode.SIM;
   public static final Mode kCurrentMode = RobotBase.isReal() ? Mode.REAL : kSimMode;
 
-     public static final class ArmConstants {
+     public static final class WristConstants {
     public static final int kPivotMotorPort = 1; // CAN ID — change to yours
 
     // Mechanism geometry. estimateMOI treats the arm as a uniform rod, so its
@@ -61,10 +61,6 @@ public final class Constants {
     public static final Angle kStowed = Degrees.of(90);
 
     public static final Angle kTolerance = Degrees.of(2);
-
-    // The roller has no goal to profile — just a direction and a speed.
-    public static final double kIntakeSpeed = 0.6; // fraction of full output
-    public static final double kEjectSpeed = -0.6;
   }
 
 
