@@ -4,15 +4,24 @@
 
 package first.robot;
 
+import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.Kilograms;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
-
-import com.ctre.phoenix6.signals.InvertedValue;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.Inches;
+import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularAcceleration;
 import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearVelocity;
+import org.wpilib.units.measure.Mass;
+
+import com.ctre.phoenix6.signals.InvertedValue;
 
 public final class Constants {
   public enum Mode { REAL, SIM, REPLAY }
@@ -80,6 +89,35 @@ public final class Constants {
     public static final double kP = 0.02; // turn power per degree of heading error
   }
 
+      public static class ArmConstants {
+    public static final int kPivotMotorPort = 21; // CAN ID — change to yours
+    public static final int kRollerMotorPort = 22; // CAN ID — change to yours
+
+    public static final double kGearRatio = 50.0; // rotor : arm
+    public static final Distance kArmLength = Inches.of(20);
+    public static final Mass kArmMass = Kilograms.of(3.0);
+
+    public static final Angle kMinAngle = Degrees.of(-20);
+    public static final Angle kMaxAngle = Degrees.of(180);
+
+    public static final AngularVelocity kMaxVelocity = DegreesPerSecond.of(180);
+    public static final AngularAcceleration kMaxAcceleration =
+        DegreesPerSecondPerSecond.of(360);
+    public static final double kArmKG = 0.25; 
+    public static final double kArmKV = 6.0; 
+    public static final double kArmKA = 0.055;
+    public static final double kArmKP = 60.0; 
+   
+    public static final Angle kIntake = Degrees.of(-20);
+    public static final Angle kStowed = Degrees.of(90);
+
+    public static final Angle kTolerance = Degrees.of(2);
+
+    public static final double kIntakeSpeed = 0.6;
+    public static final double kEjectSpeed = -0.6;
+  }
+
+  }
   /**
    * ====== NEXT LESSON: ADD CODE HERE ======
    * Add a VisionConstants class: this season's field layout — where every AprilTag sits
@@ -87,4 +125,4 @@ public final class Constants {
    * web UI, and its mount position as a Transform3d from robot center to lens; and the
    * simulated camera's field of view and range.
    */
-}
+

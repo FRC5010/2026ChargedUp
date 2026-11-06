@@ -1,4 +1,4 @@
-package first.robot.subsystems.features;
+package first.robot.subsystems.mechanisms.Intake;
 
 public class Intake {
     

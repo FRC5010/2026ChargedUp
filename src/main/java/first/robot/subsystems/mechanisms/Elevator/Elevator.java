@@ -1,7 +1,7 @@
-package first.robot.subsystems.features;
+package first.robot.subsystems.mechanisms.Elevator;
 
 public class Elevator {
-    private final ElevatorIo io;
+    private final ElevatorIO io;
     
     
 }

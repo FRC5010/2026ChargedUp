@@ -1,14 +1,11 @@
-package first.robot.subsystems.features;
+package first.robot.subsystems.mechanisms.Arm;
+import org.wpilib.command3.Mechanism;
 
-public class Arm implements GenericSubsystem {
+public class Arm implements Mechanism {
     private final ArmIO io;
     
-    public Arm() {
-        
-    }
-   
-    public void configTestControls(Gamepad controller) {
-        controller.westFace().whileTrue((armCommand(.90)));
-    }
+   public LoggedMechanismLigament2d get Carriage() {
+    return m_carriage;
+   }
     
 }
