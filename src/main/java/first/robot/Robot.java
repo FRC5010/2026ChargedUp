@@ -9,7 +9,12 @@ import org.wpilib.command3.Scheduler;
 import org.wpilib.command3.SchedulerEvent;
 import org.wpilib.command3.button.CommandGamepad;
 import org.wpilib.framework.OpModeRobot;
+import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.telemetry.Telemetry;
+
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import org.wpilib.system.DataLogManager;
 
 import first.robot.subsystems.Drivetrain;
@@ -32,6 +37,10 @@ public class Robot extends OpModeRobot {
   // Localizer reads the drivetrain's kinematics/rotation/module positions at
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
+
+  //intake feeder
+  public final TalonFX feeder = new TalonFX(5, new CANBus(CANPort.CAN_S0));
+
 
   /**
    * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
@@ -80,7 +89,9 @@ public class Robot extends OpModeRobot {
 
   /** Runs every tick, but only while the code is running in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+    feederSim.periodic();
+  }
 
   /**
    * This function is called periodically anytime when no opmode is selected, including when the
