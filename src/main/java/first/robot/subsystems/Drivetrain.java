@@ -187,20 +187,6 @@ public class Drivetrain implements Mechanism, PoseProvider {
     }
   }
 
-  public ChassisVelocities getRobotRelativeVelocities() {
-    SwerveModuleVelocity[] states = new SwerveModuleVelocity[m_modules.length];
-    for (int i = 0; i < m_modules.length; i++) {
-      states[i] = new SwerveModuleVelocity(
-          m_modules[i].getDriveVelocityMetersPerSec(),
-          Rotation2d.fromDegrees(m_modules[i].getSteerAngleDegrees()));
-    }
-    return m_kinematics.toChassisVelocities(states);
-  }
-
-  public void driveRobotRelative(ChassisVelocities speeds) {
-    applyChassisSpeeds(speeds);
-  }
-
   public SwerveDriveKinematics getKinematics() {
     return m_kinematics;
   }
@@ -222,6 +208,25 @@ public class Drivetrain implements Mechanism, PoseProvider {
       positions[i] = m_modules[i].getPosition();
     }
     return positions;
+  }
+
+  /**
+   * Current robot-relative chassis speeds — Lesson 10's kinematics run
+   * backward: four measured module states in, one chassis motion out.
+   */
+  public ChassisVelocities getChassisSpeeds() {
+    SwerveModuleVelocity[] states = new SwerveModuleVelocity[m_modules.length];
+    for (int i = 0; i < m_modules.length; i++) {
+      states[i] = new SwerveModuleVelocity(
+          m_modules[i].getDriveVelocityMetersPerSec(),
+          Rotation2d.fromDegrees(m_modules[i].getSteerAngleDegrees()));
+    }
+    return m_kinematics.toChassisVelocities(states);
+  }
+
+  /** Drive one tick from a robot-relative ChassisSpeeds. The door BLine drives through. */
+  public void driveRobotRelative(ChassisVelocities speeds) {
+    applyChassisSpeeds(speeds);
   }
 
   /** As a PoseProvider, the drivetrain contributes wheel-and-gyro odometry. */
