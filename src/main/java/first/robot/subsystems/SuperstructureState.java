@@ -46,9 +46,7 @@ different subsystems
 then ill assign each enum type to an instance of the object that is specific to that state
 like:
 IDLE = new robotState(armAngle: #, armExtensionL);
-^^^
-|||
-|||
-this is done
+
+as of 11/6/26 i am done with the data object part!
 
 */
