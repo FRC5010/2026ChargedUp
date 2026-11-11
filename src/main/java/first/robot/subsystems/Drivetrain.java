@@ -235,3 +235,34 @@ public class Drivetrain implements Mechanism, PoseProvider {
     Telemetry.log("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()), Rotation2d.struct);
   }
 }
+  /** The chassis's body in the physics world — one, shared by all four modules. */
+  private static final SwerveDriveSimulation m_driveSim = createDriveSim();
+    /** Builds the simulated chassis and puts it on the simulated field. Sim only. */
+  private static SwerveDriveSimulation createDriveSim() {
+    if (Constants.kCurrentMode != Constants.Mode.SIM) {
+      return null; // a real robot already has a world; replay doesn't need one
+    }
+
+    DriveTrainSimulationConfig config = DriveTrainSimulationConfig.Default()
+        .withRobotMass(DriveConstants.kRobotMass)
+        .withBumperSize(DriveConstants.kBumperLength, DriveConstants.kBumperWidth)
+        .withTrackLengthTrackWidth(
+            Meters.of(DriveConstants.kHalfLength * 2),
+            Meters.of(DriveConstants.kHalfWidth * 2))
+        .withGyro(COTS.ofPigeon2())
+        .withSwerveModule(new SwerveModuleSimulationConfig(
+            DCMotor.getKrakenX60(1),        // drive motor
+            DCMotor.getKrakenX60(1),        // steer motor
+            DriveConstants.kDriveGearRatio,
+            SteerConstants.kSteerGearRatio,
+            Volts.of(0.1),                  // volts needed to break drive friction
+            Volts.of(0.2),                  // volts needed to break steer friction
+            DriveConstants.kWheelRadius,
+            KilogramSquareMeters.of(0.03),  // steering inertia
+            COTS.WHEELS.COLSONS.cof));      // how hard the tires grip
+
+    SwerveDriveSimulation sim =
+        new SwerveDriveSimulation(config, DriveConstants.kSimStartingPose);
+    SimulatedArena.getInstance().addDriveTrainSimulation(sim);
+    return sim;
+  }
