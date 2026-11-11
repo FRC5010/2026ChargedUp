@@ -18,7 +18,7 @@ public class Superstructure {
   private SuperstructureState m_state = SuperstructureState.UNHOMED;
 /*
   private final Debouncer m_pieceFilter = new Debouncer(ArmConstants.kBeamDebounce.in(Seconds));
-
+  
   public Superstructure(Elevator elevator, Arm arm) {
     m_elevator = elevator;
     m_arm = arm;
