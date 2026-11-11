@@ -5,12 +5,12 @@
 package first.robot;
 
 import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
+import static org.wpilib.units.Units.Inches;
 import static org.wpilib.units.Units.Kilograms;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
-import static org.wpilib.units.Units.DegreesPerSecond;
-import static org.wpilib.units.Units.Inches;
-import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
