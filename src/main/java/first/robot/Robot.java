@@ -13,14 +13,19 @@ import org.wpilib.telemetry.Telemetry;
 import org.wpilib.system.DataLogManager;
 
 import first.robot.subsystems.Drivetrain;
+import first.robot.subsystems.Elevator;
 import first.robot.subsystems.Localizer;
 import first.robot.subsystems.VisionPoseProvider;
 
 /**
- * The methods in this class are called automatically as described in the OpModeRobot documentation.
- * OpMode classes anywhere in the package (or sub-packages) where this class is located are
- * automatically registered to display in the Driver Station. If you change the name of this class
- * or the package after creating this project, you must also update the Main.java file in the
+ * The methods in this class are called automatically as described in the
+ * OpModeRobot documentation.
+ * OpMode classes anywhere in the package (or sub-packages) where this class is
+ * located are
+ * automatically registered to display in the Driver Station. If you change the
+ * name of this class
+ * or the package after creating this project, you must also update the
+ * Main.java file in the
  * project.
  */
 public class Robot extends OpModeRobot {
@@ -32,19 +37,23 @@ public class Robot extends OpModeRobot {
   // Localizer reads the drivetrain's kinematics/rotation/module positions at
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
+  public final Elevator elevator = new Elevator();
 
   /**
    * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-   * Replace the fake camera with two real Limelight pose providers, front and back.
+   * Replace the fake camera with two real Limelight pose providers, front and
+   * back.
    * Make them blank finals — declared here, assigned in the constructor — because
-   * building a camera needs the localizer's pose, and the constructor body runs after
+   * building a camera needs the localizer's pose, and the constructor body runs
+   * after
    * every field above is finished.
    */
 
   public final VisionPoseProvider camera = new VisionPoseProvider();
 
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
   public Robot() {
@@ -53,8 +62,10 @@ public class Robot extends OpModeRobot {
 
     /**
      * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-     * Build both cameras with LimelightPoseProvider.makeCamera — each one's name, mount
-     * position and the localizer's pose getter — then register each with the localizer.
+     * Build both cameras with LimelightPoseProvider.makeCamera — each one's name,
+     * mount
+     * position and the localizer's pose getter — then register each with the
+     * localizer.
      */
 
     localizer.addProvider(camera); // the second provider — vision
@@ -62,9 +73,13 @@ public class Robot extends OpModeRobot {
 
   /** This function is called exactly once when the DS first connects. */
   @Override
-  public void driverStationConnected() {}
+  public void driverStationConnected() {
+  }
 
-  /** Runs every tick, no matter which opmode is selected or whether the robot is enabled. */
+  /**
+   * Runs every tick, no matter which opmode is selected or whether the robot is
+   * enabled.
+   */
   @Override
   public void robotPeriodic() {
     Scheduler.getDefault().run();
@@ -80,12 +95,15 @@ public class Robot extends OpModeRobot {
 
   /** Runs every tick, but only while the code is running in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 
   /**
-   * This function is called periodically anytime when no opmode is selected, including when the
+   * This function is called periodically anytime when no opmode is selected,
+   * including when the
    * Driver Station is disconnected.
    */
   @Override
-  public void nonePeriodic() {}
+  public void nonePeriodic() {
+  }
 }

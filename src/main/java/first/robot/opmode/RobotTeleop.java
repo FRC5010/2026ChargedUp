@@ -12,6 +12,7 @@ import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 
 import first.robot.Constants.DriveConstants;
+import first.robot.Constants.ElevatorConstants;
 import first.robot.Robot;
 
 @Teleop
@@ -34,7 +35,9 @@ public class RobotTeleop extends PeriodicOpMode {
     // 0°.
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
-
+    robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));
+    robot.driverController.dpadRight().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreMid));
+    robot.driverController.dpadUp().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreHigh));
     // Pretend a camera just saw us at (2, 5) facing 90°.
     robot.driverController.start().onTrue(reportFakeSighting(robot));
   }
@@ -57,7 +60,7 @@ public class RobotTeleop extends PeriodicOpMode {
 
   @Override
   public void periodic() {
-    /* Called periodically (set time interval) while the robot is enabled. */
+    /* Called periodically (set time interval) while the robot is enabled.
     if (XboxController.getRightBumperButton()) {
       robot.feeder.setThrottle(0.75);
     } else if (XboxController.getLeftBumperButton()) {
@@ -67,6 +70,7 @@ public class RobotTeleop extends PeriodicOpMode {
     } else {
       robot.feeder.setThrottle(0.0);
     }
+    */
   }
 
   @Override
