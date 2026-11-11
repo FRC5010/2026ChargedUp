@@ -4,9 +4,6 @@
 
 package first.robot.opmode;
 
-import org.wpilib.command3.Command;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 
@@ -26,12 +23,11 @@ public class RobotTeleop extends PeriodicOpMode {
     // stick rotates.
     robot.drivetrain.setDefaultCommand(
         robot.drivetrain.driveFieldRelative(
-            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftY()), // forward = +X
-            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftX()), // left = +Y
+            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftY()),  // forward = +X
+            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftX()),  // left    = +Y
             () -> DriveConstants.kMaxAngularSpeed.times(-robot.driverController.getRightX())));
 
-    // Tap the bottom face button to turn and face 90°; the right face button for
-    // 0°.
+    // Tap the bottom face button to turn and face 90°; the right face button for 0°.
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
 
@@ -39,15 +35,6 @@ public class RobotTeleop extends PeriodicOpMode {
     robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));
     robot.driverController.dpadRight().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreMid));
     robot.driverController.dpadUp().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreHigh));
-
-    // Pretend a camera just saw us at (2, 5) facing 90°.
-    robot.driverController.start().onTrue(reportFakeSighting(robot));
-  }
-
-  private static Command reportFakeSighting(Robot robot) {
-    return Command
-        .noRequirements(coroutine -> robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
-        .named("Report Fake Sighting");
   }
 
   @Override
@@ -72,8 +59,6 @@ public class RobotTeleop extends PeriodicOpMode {
 
   @Override
   public void close() {
-    /*
-     * Called when the opmode is de-selected / no additional methods will be called.
-     */
+    /* Called when the opmode is de-selected / no additional methods will be called. */
   }
 }

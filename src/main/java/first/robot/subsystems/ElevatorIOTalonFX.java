@@ -1,9 +1,11 @@
 package first.robot.subsystems;
 
+import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
-
-import org.wpilib.hardware.bus.CANPort;
+import static org.wpilib.units.Units.Rotations;
+import static org.wpilib.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.Volts;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -11,58 +13,57 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
+import org.wpilib.hardware.bus.CANPort;
+
 import first.robot.Constants.ElevatorConstants;
 
-/** Real hardware behind the ElevatorIO contract: one TalonFX running Motion Magic. */
+/** Real hardware: Motion Magic profiles the move, Slot0's full feedforward set holds it. */
 public class ElevatorIOTalonFX implements ElevatorIO {
-    // protected, not private: ElevatorIOSim extends this class and needs the motor.
-    protected final TalonFX m_motor;
-    private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
+  protected final TalonFX m_motor;
+  private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
 
-    public ElevatorIOTalonFX(int motorId) {
-        m_motor = new TalonFX(ElevatorConstants.kMotorPort, new CANBus(CANPort.CAN_S0));
+  public ElevatorIOTalonFX() {
+    m_motor = new TalonFX(ElevatorConstants.kMotorPort, new CANBus(CANPort.CAN_S0));
 
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        // One "mechanism rotation" is now one drum rotation.
-        config.Feedback.SensorToMechanismRatio = ElevatorConstants.kGearRatio;
+    TalonFXConfiguration config = new TalonFXConfiguration();
+    config.Feedback.SensorToMechanismRatio = ElevatorConstants.kGearRatio;
 
-        // The model first: hold, move, accelerate. Then the trim.
-        config.Slot0.kG = ElevatorConstants.kElevatorKG;
-        config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-        config.Slot0.kV = ElevatorConstants.kElevatorKV;
-        config.Slot0.kA = ElevatorConstants.kElevatorKA;
-        config.Slot0.kP = ElevatorConstants.kElevatorKP;
+    // Full feedforward set — kP is the trim, not the whole story.
+    config.Slot0.kG = ElevatorConstants.kElevatorKG;
+    config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+    config.Slot0.kV = ElevatorConstants.kElevatorKV;
+    config.Slot0.kA = ElevatorConstants.kElevatorKA;
+    config.Slot0.kP = ElevatorConstants.kElevatorKP;
 
-        // The speed limit for the profile the firmware will generate.
-        config.MotionMagic.MotionMagicCruiseVelocity =
-                metersToRotations(ElevatorConstants.kMaxVelocity.in(MetersPerSecond));
-        config.MotionMagic.MotionMagicAcceleration =
-                metersToRotations(ElevatorConstants.kMaxAcceleration.in(MetersPerSecondPerSecond));
+    config.MotionMagic.MotionMagicCruiseVelocity =
+        metersToRotations(ElevatorConstants.kMaxVelocity.in(MetersPerSecond));
+    config.MotionMagic.MotionMagicAcceleration =
+        metersToRotations(ElevatorConstants.kMaxAcceleration.in(MetersPerSecondPerSecond));
 
-        m_motor.getConfigurator().apply(config);
-    }
+    m_motor.getConfigurator().apply(config);
+  }
 
-    /** Drum rotations for a height in meters — the elevator's version of wheel circumference. */
-    protected static double metersToRotations(double meters) {
-        return meters / ElevatorConstants.kDrumCircumferenceMeters;
-    }
+  @Override
+  public void updateInputs(ElevatorIOInputs inputs) {
+    inputs.heightMeters = rotationsToMeters(m_motor.getPosition().getValue().in(Rotations));
+    inputs.velocityMetersPerSec =
+        rotationsToMeters(m_motor.getVelocity().getValue().in(RotationsPerSecond));
+    inputs.appliedVolts = m_motor.getMotorVoltage().getValue().in(Volts);
+    inputs.setpointMeters = rotationsToMeters(m_motor.getClosedLoopReference().getValue());
+  }
 
-    protected static double rotationsToMeters(double rotations) {
-        return rotations * ElevatorConstants.kDrumCircumferenceMeters;
-    }
+  @Override
+  public void setGoalHeightMeters(double meters) {
+    // Phoenix speaks Units — hand it the position as a measure.
+    m_motor.setControl(m_request.withPosition(Rotations.of(metersToRotations(meters))));
+  }
 
-    @Override
-    public void updateInputs(ElevatorIOInputs inputs) {
-        inputs.heightMeters = rotationsToMeters(m_motor.getPosition().getValueAsDouble());
-        inputs.velocityMetersPerSec = rotationsToMeters(m_motor.getVelocity().getValueAsDouble());
-        inputs.appliedVolts = m_motor.getMotorVoltage().getValueAsDouble();
-        // Where the profile says we should be *right now* — not the final goal.
-        inputs.setpointMeters =
-                rotationsToMeters(m_motor.getClosedLoopReference().getValueAsDouble());
-    }
+  /** Drum rotations for a given carriage height — the drum's circumference does the conversion. */
+  protected static double metersToRotations(double meters) {
+    return meters / (2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters));
+  }
 
-    @Override
-    public void setGoalHeightMeters(double heightMeters) {
-        m_motor.setControl(m_request.withPosition(metersToRotations(heightMeters)));
-    }
+  protected static double rotationsToMeters(double rotations) {
+    return rotations * 2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters);
+  }
 }

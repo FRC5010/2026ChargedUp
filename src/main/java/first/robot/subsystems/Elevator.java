@@ -2,54 +2,77 @@ package first.robot.subsystems;
 
 import static org.wpilib.units.Units.Meters;
 
-import org.littletonrobotics.junction.Logger;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
+import org.wpilib.command3.Scheduler;
 import org.wpilib.units.measure.Distance;
+
+import org.littletonrobotics.junction.Logger;
 
 import first.robot.Constants;
 import first.robot.Constants.ElevatorConstants;
 
-/**
- * A scoring elevator on the same spine as the swerve modules: it owns an
- * ElevatorIO chosen by the current mode, a logged inputs bundle, and the
- * decision about where it is allowed to go.
- */
+/** Scoring elevator: Motion Magic profiles the move, Slot0's feedforward model holds it there. */
 public class Elevator implements Mechanism {
-    private final ElevatorIO m_io = switch (Constants.kCurrentMode) {
-        case REAL -> new ElevatorIOTalonFX(ElevatorConstants.kMotorPort);
-        case SIM -> new ElevatorIOSim(ElevatorConstants.kMotorPort);
-        case REPLAY -> new ElevatorIO() {}; // inputs come from the log
-    };
-    private final ElevatorIOInputsAutoLogged m_inputs = new ElevatorIOInputsAutoLogged();
+  private final ElevatorIO m_io = switch (Constants.kCurrentMode) {
+    case REAL -> new ElevatorIOTalonFX();
+    case SIM -> new ElevatorIOSim();
+    case REPLAY -> new ElevatorIO() {}; // inputs come from the log
+  };
+  private final ElevatorIOInputsAutoLogged m_inputs = new ElevatorIOInputsAutoLogged();
+  private Distance m_goal = ElevatorConstants.kStowed;
 
-    private Distance m_goal = ElevatorConstants.kStowed;
+  /**
+   * ====== NEXT LESSON: ADD CODE HERE ======
+   * Add the drawing as fields, so it lasts between ticks: a canvas, a base point
+   * anchored to it, the carriage as a segment pointing straight up from the base, and
+   * a short piece attached to the top of the carriage.
+   */
 
+  public Elevator() {
+    Scheduler.getDefault().addPeriodic(this::periodic);
+  }
 
-    public void periodic() {
-        m_io.updateInputs(m_inputs);
-        Logger.processInputs("Elevator", m_inputs);
-        Logger.recordOutput("Elevator/GoalMeters", m_goal.in(Meters));
-        Logger.recordOutput("Elevator/AtGoal", atGoal());
+  /** One tick of sensing: read the hardware into the bundle and log it. */
+  private void periodic() {
+    m_io.updateInputs(m_inputs);
+    Logger.processInputs("Elevator", m_inputs); // every reading, under Elevator/
+    Logger.recordOutput("Elevator/GoalMeters", m_goal.in(Meters));
+
+    /**
+     * ====== NEXT LESSON: ADD CODE HERE ======
+     * Set the carriage segment's length from the height, color it by whether it's at
+     * the goal, then record the whole drawing as an output — every tick, like every
+     * number above.
+     */
+  }
+
+  /** Send the carriage to 'target', clamped to safe travel. Keeps holding once it arrives. */
+  public Command goToHeight(Distance target) {
+    return runRepeatedly(() -> {
+          m_goal = clampToTravel(target);
+          m_io.setGoalHeightMeters(m_goal.in(Meters));
+        })
+        .until(this::atGoal)
+        .named("Go To Height");
+  }
+
+  public boolean atGoal() {
+    return Math.abs(m_inputs.heightMeters - m_goal.in(Meters)) < ElevatorConstants.kTolerance.in(Meters);
+  }
+
+  public double getHeightMeters() {
+    return m_inputs.heightMeters;
+  }
+
+  /** Keeps 'target' inside [kMinHeight, kMaxHeight] — there's no MathUtil.clamp to reach for here. */
+  private static Distance clampToTravel(Distance target) {
+    if (target.gt(ElevatorConstants.kMaxHeight)) {
+      return ElevatorConstants.kMaxHeight;
+    } else if (target.lt(ElevatorConstants.kMinHeight)) {
+      return ElevatorConstants.kMinHeight;
+    } else {
+      return target;
     }
-
-    /** Send the elevator to a height. Finishes on arrival; the firmware holds it there. */
-    public Command goToHeight(Distance height) {
-        return runRepeatedly(() -> {
-            m_goal = clampToTravel(height);
-            m_io.setGoalHeightMeters(m_goal.in(Meters));
-        }).until(this::atGoal)
-        .named("Go to Height");
-    }
-
-    public boolean atGoal() {
-        return Math.abs(m_inputs.heightMeters - m_goal.in(Meters))
-                < ElevatorConstants.kTolerance.in(Meters);
-    }
-
-    /** A goal outside the elevator's travel is a bug, not a request. Pin it to the ends. */
-    private static Distance clampToTravel(Distance height) {
-        // TODO: Make this correct
-        return height;
-    }
+  }
 }
