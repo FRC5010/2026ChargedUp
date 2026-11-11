@@ -1,14 +1,17 @@
-package frc.robot.subsystems;
+package first.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Kilograms;
-import static edu.wpi.first.units.Units.Meters;
+
+import static org.wpilib.units.Units.Kilograms;
+import static org.wpilib.units.Units.Meters;
+
+import org.wpilib.math.system.DCMotor;
+import org.wpilib.simulation.ElevatorSim;
+import org.wpilib.system.RobotController;
 
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.simulation.ElevatorSim;
-import frc.robot.Constants.ElevatorConstants;
+import first.robot.Constants.ElevatorConstants;
+
 
 /**
  * The sim implementation: the real TalonFX class (Phoenix simulates its own
@@ -46,9 +49,9 @@ public class ElevatorIOSim extends ElevatorIOTalonFX {
 
         // The model speaks meters; the motor's sim state speaks rotor rotations.
         m_motorSim.setRawRotorPosition(
-                metersToRotations(m_model.getPositionMeters()) * ElevatorConstants.kGearRatio);
+                metersToRotations(m_model.getPosition()) * ElevatorConstants.kGearRatio);
         m_motorSim.setRotorVelocity(
-                metersToRotations(m_model.getVelocityMetersPerSecond())
+                metersToRotations(m_model.getVelocity())
                         * ElevatorConstants.kGearRatio);
     }
 }

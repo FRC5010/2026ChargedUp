@@ -15,7 +15,7 @@ public class SwerveModule {
   public final Translation2d location;
 
   private final ModuleIO m_io;
-  private final ModuleIO.ModuleIOInputs m_inputs = new ModuleIO.ModuleIOInputs();
+  private final ModuleIOInputsAutoLogged m_inputs = new ModuleIOInputsAutoLogged();
   private final String m_logKey; // e.g. "Drivetrain/Module0"
 
   public SwerveModule(ModuleIO io, String logKey, Translation2d location) {

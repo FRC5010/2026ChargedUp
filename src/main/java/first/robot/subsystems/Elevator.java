@@ -1,22 +1,21 @@
-package frc.robot.subsystems;
+package first.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Meters;
+import static org.wpilib.units.Units.Meters;
 
 import org.littletonrobotics.junction.Logger;
+import org.wpilib.command3.Command;
+import org.wpilib.command3.Mechanism;
+import org.wpilib.units.measure.Distance;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.Constants.ElevatorConstants;
+import first.robot.Constants;
+import first.robot.Constants.ElevatorConstants;
 
 /**
  * A scoring elevator on the same spine as the swerve modules: it owns an
  * ElevatorIO chosen by the current mode, a logged inputs bundle, and the
  * decision about where it is allowed to go.
  */
-public class Elevator extends SubsystemBase {
+public class Elevator implements Mechanism {
     private final ElevatorIO m_io = switch (Constants.kCurrentMode) {
         case REAL -> new ElevatorIOTalonFX(ElevatorConstants.kMotorPort);
         case SIM -> new ElevatorIOSim(ElevatorConstants.kMotorPort);
@@ -26,7 +25,7 @@ public class Elevator extends SubsystemBase {
 
     private Distance m_goal = ElevatorConstants.kStowed;
 
-    @Override
+
     public void periodic() {
         m_io.updateInputs(m_inputs);
         Logger.processInputs("Elevator", m_inputs);
@@ -36,10 +35,11 @@ public class Elevator extends SubsystemBase {
 
     /** Send the elevator to a height. Finishes on arrival; the firmware holds it there. */
     public Command goToHeight(Distance height) {
-        return run(() -> {
+        return runRepeatedly(() -> {
             m_goal = clampToTravel(height);
             m_io.setGoalHeightMeters(m_goal.in(Meters));
-        }).until(this::atGoal);
+        }).until(this::atGoal)
+        .named("Go to Height");
     }
 
     public boolean atGoal() {
@@ -49,9 +49,7 @@ public class Elevator extends SubsystemBase {
 
     /** A goal outside the elevator's travel is a bug, not a request. Pin it to the ends. */
     private static Distance clampToTravel(Distance height) {
-        return Meters.of(MathUtil.clamp(
-                height.in(Meters),
-                ElevatorConstants.kMinHeight.in(Meters),
-                ElevatorConstants.kMaxHeight.in(Meters)));
+        // TODO: Make this correct
+        return height;
     }
 }

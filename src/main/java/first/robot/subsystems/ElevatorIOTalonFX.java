@@ -1,14 +1,17 @@
-package frc.robot.subsystems;
+package first.robot.subsystems;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 
+import org.wpilib.hardware.bus.CANPort;
+
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
-import frc.robot.Constants.ElevatorConstants;
+import first.robot.Constants.ElevatorConstants;
 
 /** Real hardware behind the ElevatorIO contract: one TalonFX running Motion Magic. */
 public class ElevatorIOTalonFX implements ElevatorIO {
@@ -17,7 +20,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
 
     public ElevatorIOTalonFX(int motorId) {
-        m_motor = new TalonFX(motorId);
+        m_motor = new TalonFX(ElevatorConstants.kMotorPort, new CANBus(CANPort.CAN_S0));
 
         TalonFXConfiguration config = new TalonFXConfiguration();
         // One "mechanism rotation" is now one drum rotation.

@@ -4,15 +4,27 @@
 
 package first.robot;
 
+import static org.wpilib.units.Units.Centimeters;
+import static org.wpilib.units.Units.Inches;
+import static org.wpilib.units.Units.Kilogram;
+import static org.wpilib.units.Units.Kilograms;
+import static org.wpilib.units.Units.Meter;
+import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
 import org.wpilib.framework.RobotBase;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.units.measure.AngularVelocity;
+import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
+import org.wpilib.units.measure.Mass;
 
 public final class Constants {
   public enum Mode { REAL, SIM, REPLAY }
@@ -87,7 +99,7 @@ public final class Constants {
    * web UI, and its mount position as a Transform3d from robot center to lens; and the
    * simulated camera's field of view and range.
    */
-}
+
   public static class ElevatorConstants {
     public static final int kMotorPort = 20; // CAN ID — change to yours
 
@@ -123,22 +135,11 @@ public final class Constants {
     public static final Distance kTolerance = Centimeters.of(2);
   }
     // Physical facts a physics engine needs that pure motor math never did.
-  public static final Mass kRobotMass = Kilograms.of(45);          // with battery and bumpers
+  public static final Mass kRobotMass = Kilogram.of(45);          // with battery and bumpers
   public static final Distance kBumperLength = Inches.of(30);      // front-to-back, over bumpers
   public static final Distance kBumperWidth  = Inches.of(30);      // side-to-side, over bumpers
-  public static final Distance kWheelRadius  = Meters.of(kWheelDiameterMeters / 2);
+  public static final Distance kWheelRadius  = Meters.of(DriveConstants.kWheelDiameterMeters / 2);
 
   /** Where the simulated robot is placed on the field at startup. */
   public static final Pose2d kSimStartingPose = new Pose2d(3, 3, new Rotation2d());
-  import static edu.wpi.first.units.Units.KilogramSquareMeters;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Volts;
-
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.COTS;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
-
-import edu.wpi.first.math.system.plant.DCMotor;
-import frc.robot.Constants.SteerConstants;
+}

@@ -12,66 +12,58 @@ import first.robot.Constants.DriveConstants;
 import first.robot.Constants.SteerConstants;
 
 /** Sim: the real TalonFX class, plus the physics models from Lessons 4-5/12. */
-package frc.robot.subsystems;
-
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
-import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
-import org.ironmaple.simulation.motorsims.SimulatedMotorController;
-
-import com.ctre.phoenix6.sim.CANcoderSimState;
-import com.ctre.phoenix6.sim.TalonFXSimState;
-
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
-
 public class ModuleIOSim extends ModuleIOTalonFX {
   private final TalonFXSimState m_driveSim;
   private final TalonFXSimState m_steerSim;
   private final CANcoderSimState m_steerEncoderSim;
 
-  public ModuleIOSim(
-      int driveId, int steerId, int cancoderId, double magnetOffsetRotations,
-      SwerveModuleSimulation moduleSim) {
-    super(driveId, steerId, cancoderId, magnetOffsetRotations); // motors, CANcoder, configs
+  private final DCMotorSim m_driveModel =
+      new DCMotorSim(
+          Models.singleJointedArmFromPhysicalConstants(
+              DCMotor.getKrakenX60(1), 0.025, DriveConstants.kDriveGearRatio),
+          DCMotor.getKrakenX60(1));
+  private final DCMotorSim m_steerModel =
+      new DCMotorSim(
+          Models.singleJointedArmFromPhysicalConstants(
+              DCMotor.getKrakenX60(1), 0.004, SteerConstants.kSteerGearRatio),
+          DCMotor.getKrakenX60(1));
+
+  public ModuleIOSim(int driveId, int steerId, int cancoderId, double magnetOffsetRotations) {
+    super(driveId, steerId, cancoderId, magnetOffsetRotations); // build motors, CANcoder, and configs
     m_driveSim = m_driveMotor.getSimState();
     m_steerSim = m_steerMotor.getSimState();
     m_steerEncoderSim = m_steerEncoder.getSimState();
+  }
 
-    // Drive: the engine asks what we're applying; we answer, and take its motion.
-    moduleSim.useDriveMotorController(new SimulatedMotorController() {
-      @Override
-      public Voltage updateControlSignal(
-          Angle mechanismAngle, AngularVelocity mechanismVelocity,
-          Angle encoderAngle, AngularVelocity encoderVelocity) {
-        m_driveSim.setSupplyVoltage(RobotController.getBatteryVoltage());
-        m_driveSim.setRawRotorPosition(encoderAngle.in(Rotations));
-        m_driveSim.setRotorVelocity(encoderVelocity.in(RotationsPerSecond));
-        return Volts.of(m_driveSim.getMotorVoltage());
-      }
-    });
+  @Override
+  public void updateInputs(ModuleIOInputs inputs) {
+    stepSim(); // advance the physics one tick...
+    super.updateInputs(inputs); // ...then read the sensors like the real class
+  }
 
-    // Steer: the same trade, plus the CANcoder — which reads the wheel, not the rotor.
-    moduleSim.useSteerMotorController(new SimulatedMotorController() {
-      @Override
-      public Voltage updateControlSignal(
-          Angle mechanismAngle, AngularVelocity mechanismVelocity,
-          Angle encoderAngle, AngularVelocity encoderVelocity) {
-        m_steerSim.setSupplyVoltage(RobotController.getBatteryVoltage());
-        m_steerSim.setRawRotorPosition(encoderAngle.in(Rotations));
-        m_steerSim.setRotorVelocity(encoderVelocity.in(RotationsPerSecond));
-        m_steerEncoderSim.setRawPosition(mechanismAngle.in(Rotations));
-        m_steerEncoderSim.setVelocity(mechanismVelocity.in(RotationsPerSecond));
-        return Volts.of(m_steerSim.getMotorVoltage());
-      }
-    });
+  /** One tick of pretend reality. */
+  private void stepSim() {
+    // Drive motor: model reports wheel motion, convert back to rotor-side.
+    m_driveSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+    m_driveModel.setInputVoltage(m_driveSim.getMotorVoltage());
+    m_driveModel.update(0.020);
+    m_driveSim.setRawRotorPosition(
+        m_driveModel.getAngularPosition() / (2 * Math.PI) * DriveConstants.kDriveGearRatio);
+    m_driveSim.setRotorVelocity(
+        m_driveModel.getAngularVelocity() / (2 * Math.PI) * DriveConstants.kDriveGearRatio);
+
+    // Steer motor: same, through the 25:1 reduction.
+    m_steerSim.setSupplyVoltage(RobotController.getBatteryVoltage());
+    m_steerModel.setInputVoltage(m_steerSim.getMotorVoltage());
+    m_steerModel.update(0.020);
+    m_steerSim.setRawRotorPosition(
+        m_steerModel.getAngularPosition() / (2 * Math.PI) * SteerConstants.kSteerGearRatio);
+    m_steerSim.setRotorVelocity(
+        m_steerModel.getAngularVelocity() / (2 * Math.PI) * SteerConstants.kSteerGearRatio);
+
+    // CANcoder: the closed loop reads this continuously, so it needs its own
+    // honest feed too — mechanism-side, no gear multiply.
+    m_steerEncoderSim.setRawPosition(m_steerModel.getAngularPosition() / (2 * Math.PI));
+    m_steerEncoderSim.setVelocity(m_steerModel.getAngularVelocity() / (2 * Math.PI));
   }
 }
-  @Override
-  public void simulationPeriodic() {
-    SimulatedArena.getInstance().simulationPeriodic();
-  }
