@@ -8,7 +8,7 @@ import org.wpilib.command3.Trigger;
 import org.wpilib.math.filter.Debouncer;
 import first.robot.subsystems.mechanisms.Arm.Arm;
 
-//import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.Logger;
 
 import first.robot.Constants.ArmConstants;
 import first.robot.Constants.ElevatorConstants;
