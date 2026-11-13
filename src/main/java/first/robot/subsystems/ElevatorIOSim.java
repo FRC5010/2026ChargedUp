@@ -41,11 +41,15 @@ public class ElevatorIOSim extends ElevatorIOTalonFX {
     m_elevatorModel.setInputVoltage(m_sim.getMotorVoltage());
     m_elevatorModel.update(0.020);
 
-    // The model reports carriage motion in meters; convert back to rotor-side
-    // rotations through the drum and the gearbox, same as every module motor.
+    double positionMeters = m_elevatorModel.getPosition();
+    double velocityMetersPerSecond = m_elevatorModel.getVelocity();
+
+    // ElevatorSim reports carriage height in meters, while the motor sim state
+    // speaks in rotor rotations. A relative encoder can only report movement
+    // since power-on, so subtract the starting height before writing back.
     m_sim.setRawRotorPosition(
-        metersToRotations(m_elevatorModel.getPosition()) * ElevatorConstants.kGearRatio);
+        metersToRotations(positionMeters) * ElevatorConstants.kGearRatio);
     m_sim.setRotorVelocity(
-        metersToRotations(m_elevatorModel.getVelocity()) * ElevatorConstants.kGearRatio);
+        metersToRotations(velocityMetersPerSecond) * ElevatorConstants.kGearRatio);
   }
 }

@@ -6,6 +6,9 @@ import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.Rotations;
 import static org.wpilib.units.Units.RotationsPerSecond;
 import static org.wpilib.units.Units.Volts;
+import com.ctre.phoenix6.controls.VoltageOut;
+
+import org.wpilib.hardware.discrete.DigitalInput;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -21,7 +24,11 @@ import first.robot.Constants.ElevatorConstants;
 public class ElevatorIOTalonFX implements ElevatorIO {
   protected final TalonFX m_motor;
   private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
-
+    private final VoltageOut m_openLoop = new VoltageOut(0);
+    private final org.wpilib.hardware.discrete.DigitalInput m_bottomLimit =
+            new org.wpilib.hardware.discrete.DigitalInput(ElevatorConstants.kMotorPort);
+    private final org.wpilib.hardware.discrete.DigitalInput m_topLimit =
+            new org.wpilib.hardware.discrete.DigitalInput(ElevatorConstants.kMotorPort);
   public ElevatorIOTalonFX() {
     m_motor = new TalonFX(ElevatorConstants.kMotorPort, new CANBus(CANPort.CAN_S0));
 
@@ -65,5 +72,14 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
   protected static double rotationsToMeters(double rotations) {
     return rotations * 2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters);
+  }
+  @Override
+  public void setVoltage(double volts) {
+    m_motor.setControl(m_openLoop.withOutput(volts));
+  }
+
+  @Override
+  public void setPositionMeters(double heightMeters) {
+    m_motor.setPosition(metersToRotations(heightMeters));
   }
 }
