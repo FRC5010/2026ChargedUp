@@ -4,12 +4,15 @@
 
 package first.robot;
 
+import static org.wpilib.units.Units.Centimeters;
 import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.DegreesPerSecond;
 import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
 import static org.wpilib.units.Units.Inches;
 import static org.wpilib.units.Units.Kilograms;
+import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
+import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
 import org.wpilib.framework.RobotBase;
@@ -18,8 +21,11 @@ import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularAcceleration;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
+import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -89,7 +95,7 @@ public final class Constants {
     public static final double kP = 0.02; // turn power per degree of heading error
   }
 
-      public static class ArmConstants {
+      public static final class ArmConstants {
     public static final int kPivotMotorPort = 21; // CAN ID — change to yours
     public static final int kRollerMotorPort = 22; // CAN ID — change to yours
 
@@ -117,7 +123,37 @@ public final class Constants {
     public static final double kEjectSpeed = -0.6;
   }
 
-  }
+public static final class ElevatorConstants {
+  public static final int kMotorPort = 20; // CAN ID — change to yours
+  public static final double kGearRatio = 12.0; // motor rotations per drum rotation
+  public static final Distance kDrumRadius = Inches.of(1.0);
+  public static final Mass kCarriageMass = Kilograms.of(5.0); // carriage + anything riding on it
+
+  public static final Distance kMinHeight = Meters.of(0.0);
+  public static final Distance kMaxHeight = Meters.of(1.5);
+
+  public static final LinearVelocity kMaxVelocity = MetersPerSecond.of(1.0);
+  public static final LinearAcceleration kMaxAcceleration = MetersPerSecondPerSecond.of(2.0);
+
+  public static final double kElevatorKG = 0.17; // volts to hold position against gravity
+  public static final double kElevatorKV = 1.42; // volts per drum rotation/sec
+  public static final double kElevatorKA = 0.003; // volts per drum rotation/sec^2
+  public static final double kElevatorKP = 20.0; // volts per drum rotation of error — the trim
+
+  public static final Distance kStowed = Meters.of(0.02);
+  public static final Distance kScoreMid = Meters.of(0.75);
+  public static final Distance kScoreHigh = Meters.of(1.45);
+
+  public static final Distance kTolerance = Centimeters.of(2);
+
+      // The stick-figure view. The canvas is measured in meters, like the field.
+    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayHeight = Meters.of(2.0);
+    public static final Distance kEffectorLength = Centimeters.of(25);
+    public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
+    public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
+}
+}
   /**
    * ====== NEXT LESSON: ADD CODE HERE ======
    * Add a VisionConstants class: this season's field layout — where every AprilTag sits
