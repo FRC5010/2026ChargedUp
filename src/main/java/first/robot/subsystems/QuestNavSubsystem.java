@@ -1,4 +1,6 @@
 package first.robot.subsystems;
+import java.util.logging.Logger;
+
 import org.wpilib.command3.Scheduler;
 import org.wpilib.driverstation.DriverStation;
 import org.wpilib.math.geometry.Pose2d;
@@ -18,8 +20,10 @@ import gg.questnav.questnav.QuestNav;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 
-public class QuestNavSubsystem {
+public class QuestNavSubsystem implements QuestNavIO {
     private QuestNav questNav;
+    private QuestNavIOInputsAutoLogged questNavInputs = new QuestNavIOInputsAutoLogged();
+    
     private static final Field FIELD_LAYOUT = new Field().loadField(
     Fields.DEFAULT_FIELD);
 
@@ -35,7 +39,7 @@ public class QuestNavSubsystem {
     private boolean shouldReject(Pose3d pose){
         return pose.getX() < 0.0
         || pose.getX() > FIELD_LAYOUT.getFieldLength()
-        ||pose.getY() < 0.0
+        || pose.getY() < 0.0
         || pose.getY() > FIELD_LAYOUT.getFieldWidth();
     }
 
@@ -89,22 +93,21 @@ public class QuestNavSubsystem {
         questNav.setPose(questPose);
     }
 
-    
+    public void updateInputs(QuestNavIOInputs inputs) {
+        inputs.connected = questNav.isConnected();
+        inputs.tracking = questNav.isTracking();
+        inputs.latency = questNav.getLatency();
+        inputs.batteryPercent = questNav.getBatteryPercent().orElse(0);
+        inputs.trackingLostCounter = questNav.getTrackingLostCounter().orElse(0);
+    }
+
     public void periodic() {
         
     questNav.commandPeriodic();
        PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
         
-       
-        Telemetry.log("QuestNav/Connected", questNav.isConnected());
-        Telemetry.log("QuestNav/Tracking", questNav.isTracking());
-        Telemetry.log("QuestNav/Latency", questNav.getLatency());
-        questNav.getBatteryPercent().ifPresent(
-            b -> Telemetry.log("QuestNav/Battery%", b)
-        );
-        questNav.getTrackingLostCounter().ifPresent(
-            c -> Telemetry.log("QuestNav/TrackingLostCounter", c)
-        );
+       updateInputs(questNavInputs);
+       Logger.processInputs("QuestNav", questNavInputs);
 
        for(PoseFrame questFrame : questFrames) {
         if(!questFrame.isTracking()) {
@@ -134,5 +137,8 @@ public class QuestNavSubsystem {
 
               
         }
+
     }
+
+  
 }
