@@ -5,14 +5,14 @@
 package first.robot;
 
 import static org.wpilib.units.Units.Centimeters;
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Inches;
+import static org.wpilib.units.Units.Kilogram;
 import static org.wpilib.units.Units.Kilograms;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
-
-import com.ctre.phoenix6.signals.InvertedValue;
 
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
@@ -23,12 +23,16 @@ import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
-import static org.wpilib.units.Units.Kilogram;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
+
+import com.ctre.phoenix6.signals.InvertedValue;
 
 public final class Constants {
   public enum Mode { REAL, SIM, REPLAY }
@@ -52,7 +56,8 @@ public final class Constants {
     public static final int kBackRightDrivePort = 7;
     public static final int kBackRightSteerPort = 8;
     public static final int kBackRightCancoderPort = 12;
-    public static final int kGyroPort = 0;               // CAN ID — change to yours
+    public static final int kGyroPort = 0;     
+        public static final Distance kEffectorLength = Centimeters.of(25);          // CAN ID — change to yours
 
     // Magnet offsets (rotations) — measure with Phoenix Tuner X, change to yours.
     public static final double kFrontLeftMagnetOffset = 0.0;
@@ -171,6 +176,12 @@ public final class Constants {
 
     public static final Distance kTolerance = Centimeters.of(2);
 
+        // The stick-figure view. The canvas is measured in meters, like the field.
+    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayHeight = Meters.of(2.0);
+    public static final Distance kEffectorLength = Centimeters.of(25);
+   public static final Angle KCARRIAGEANGLE_ANGLE2 = Degrees.of(90); // straight up
+    public static final Angle KCARRIAGEANGLE_ANGLE = Degrees.of(90); // straight up
     /**
      * ====== NEXT LESSON: ADD CODE HERE ======
      * Add the numbers for a stick-figure drawing of the elevator: the canvas's width
