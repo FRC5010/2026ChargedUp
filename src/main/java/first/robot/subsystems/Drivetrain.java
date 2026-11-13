@@ -54,6 +54,13 @@ public class Drivetrain implements Mechanism, PoseProvider {
   };
   private final GyroIO.GyroIOInputs m_gyroInputs = new GyroIO.GyroIOInputs();
 
+  private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
+      m_kinematics,
+      Rotation2d.fromDegrees(m_gyroInputs.yawDegrees),
+      getModulePositions(),
+      new Pose2d());
+
+      
   public Drivetrain() {
     Scheduler.getDefault().addPeriodic(this::periodic);
   }

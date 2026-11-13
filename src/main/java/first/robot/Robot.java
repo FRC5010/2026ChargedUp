@@ -14,6 +14,7 @@ import org.wpilib.system.DataLogManager;
 
 import first.robot.subsystems.Drivetrain;
 import first.robot.subsystems.Localizer;
+import first.robot.subsystems.QuestNavSubsystem;
 import first.robot.subsystems.VisionPoseProvider;
 
 /**
@@ -42,6 +43,7 @@ public class Robot extends OpModeRobot {
    */
 
   public final VisionPoseProvider camera = new VisionPoseProvider();
+  public final QuestNavSubsystem quest = new QuestNavSubsystem();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -57,7 +59,8 @@ public class Robot extends OpModeRobot {
      * position and the localizer's pose getter — then register each with the localizer.
      */
 
-    localizer.addProvider(camera); // the second provider — vision
+    localizer.addProvider(camera);
+    localizer.addProvider(quest); // the second provider — vision
   }
 
   /** This function is called exactly once when the DS first connects. */
@@ -67,7 +70,9 @@ public class Robot extends OpModeRobot {
   /** Runs every tick, no matter which opmode is selected or whether the robot is enabled. */
   @Override
   public void robotPeriodic() {
+    
     Scheduler.getDefault().run();
+    
   }
 
   private void logCommandStart(SchedulerEvent event) {
