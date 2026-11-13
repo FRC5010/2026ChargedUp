@@ -69,7 +69,7 @@ public class Robot extends LoggedOpModeRobot {
      * position and the localizer's pose getter — then register each with the localizer.
      */
 
-    localizer.addProvider(camera); // the second provider — vision
+    localizer.addProvider(questNav); // the second provider — vision
   }
 
   /** Tells AdvantageKit where readings come from and where results go, then starts it. */

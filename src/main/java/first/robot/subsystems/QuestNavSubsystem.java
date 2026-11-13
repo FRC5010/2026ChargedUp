@@ -1,8 +1,12 @@
 package first.robot.subsystems;
-import java.util.logging.Logger;
+
+
+
+import org.littletonrobotics.junction.Logger;
 
 import org.wpilib.command3.Scheduler;
 import org.wpilib.driverstation.DriverStation;
+import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
@@ -20,27 +24,26 @@ import gg.questnav.questnav.QuestNav;
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 
-public class QuestNavSubsystem implements QuestNavIO {
+public class QuestNavSubsystem implements QuestNavIO, PoseProvider {
     private QuestNav questNav;
     private QuestNavIOInputsAutoLogged questNavInputs = new QuestNavIOInputsAutoLogged();
-    
+
     private static final Field FIELD_LAYOUT = new Field().loadField(
-    Fields.DEFAULT_FIELD);
+            Fields.DEFAULT_FIELD);
 
     private final Drivetrain drivetrain;
     private VisionPoseProvider visionPoseProvider;
-    private final Matrix<N3, N1> QUESTNAV_STD_DEV = 
-    VecBuilder.fill(
-        0.01,  // 10 mm x positions trust
-        0.01,  // 10 mm y positions trust
-        0.01   // rotation
+    private final Matrix<N3, N1> QUESTNAV_STD_DEV = VecBuilder.fill(
+            0.01, // 10 mm x positions trust
+            0.01, // 10 mm y positions trust
+            0.01 // rotation
     );
 
-    private boolean shouldReject(Pose3d pose){
+    private boolean shouldReject(Pose3d pose) {
         return pose.getX() < 0.0
-        || pose.getX() > FIELD_LAYOUT.getFieldLength()
-        || pose.getY() < 0.0
-        || pose.getY() > FIELD_LAYOUT.getFieldWidth();
+                || pose.getX() > FIELD_LAYOUT.getFieldLength()
+                || pose.getY() < 0.0
+                || pose.getY() > FIELD_LAYOUT.getFieldWidth();
     }
 
     public QuestNavSubsystem(Drivetrain drivetrain) {
@@ -73,13 +76,13 @@ public class QuestNavSubsystem implements QuestNavIO {
     }
 
     public void transformPose() {
-    if(poseFrames.length > 0) {
-        questPose = poseFrames[poseFrames.length - 1].questPose3d();
-        robotPose = questPose.transformBy(RobotToQuest.inverse());
-        
+        if (poseFrames.length > 0) {
+            questPose = poseFrames[poseFrames.length - 1].questPose3d();
+            robotPose = questPose.transformBy(RobotToQuest.inverse());
+
+        }
     }
-    }
-    
+
     public static Pose3d getRobotPose() {
         return robotPose;
     }
@@ -93,52 +96,57 @@ public class QuestNavSubsystem implements QuestNavIO {
         questNav.setPose(questPose);
     }
 
+    @Override
     public void updateInputs(QuestNavIOInputs inputs) {
         inputs.connected = questNav.isConnected();
         inputs.tracking = questNav.isTracking();
-        inputs.latency = questNav.getLatency();
         inputs.batteryPercent = questNav.getBatteryPercent().orElse(0);
         inputs.trackingLostCounter = questNav.getTrackingLostCounter().orElse(0);
     }
+    @Override
+    public void updatePoseEstimate(SwerveDrivePoseEstimator estimator){
+        for(int i = 0; i < questNavInputs.poseObservations.length; i++){
+        estimator.addVisionMeasurement(questNavInputs.poseObservations[i].toPose2d(), questNavInputs.latency[i], QUESTNAV_STD_DEV);
 
-    public void periodic() {
-        
-    questNav.commandPeriodic();
-       PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
-        
-       updateInputs(questNavInputs);
-       Logger.processInputs("QuestNav", questNavInputs);
-
-       for(PoseFrame questFrame : questFrames) {
-        if(!questFrame.isTracking()) {
-            continue;
         }
-
-        Pose3d questPose = questFrame.questPose3d();
-        double timeStamp = questFrame.dataTimestamp();
-
-        Pose3d robotPose = questPose.transformBy(RobotToQuest.inverse());
-
-        if(shouldReject(robotPose)){
-            continue;
-        }
-
-        drivetrain.setQuestNavePose(robotPose.toPose2d());
-
-        if(!poseInit){
-            drivetrain.resetPoseFromQuestNav(robotPose.toPose2d());
-            poseInit = true;
-        } else {
-            drivetrain.addVisionMeasurement(
-                robotPose.toPose2d(), 
-                timeStamp,
-                QUESTNAV_STD_DEV);
-        }
-
-              
-        }
-
     }
 
-  
+    public void periodic() {
+
+        questNav.commandPeriodic();
+        PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
+        questNavInputs.poseObservations = new Pose3d[questFrames.length];
+        questNavInputs.latency = new double[questFrames.length];
+
+        updateInputs(questNavInputs);
+        int i = 0;
+        for (PoseFrame questFrame : questFrames) {
+            if (!questFrame.isTracking()) {
+                continue;
+            }
+
+            Pose3d questPose = questFrame.questPose3d();
+            double timeStamp = questFrame.dataTimestamp();
+
+            Pose3d robotPose = questPose.transformBy(RobotToQuest.inverse());
+
+            if (shouldReject(robotPose)) {
+                continue;
+            }
+
+            drivetrain.setQuestNavePose(robotPose.toPose2d());
+
+            if (!poseInit) {
+                drivetrain.resetPoseFromQuestNav(robotPose.toPose2d());
+                poseInit = true;
+            } else {
+               questNavInputs.poseObservations[i] = robotPose;
+               questNavInputs.latency[i] = timeStamp;
+               
+            }
+            i++;
+        }
+        Logger.processInputs("QuestNav", questNavInputs);
+    }
+
 }

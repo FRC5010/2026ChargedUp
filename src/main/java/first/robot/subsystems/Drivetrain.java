@@ -142,7 +142,7 @@ public class Drivetrain implements Mechanism, PoseProvider {
         coroutine.yield();
       }
     })
-        .whenExited(() -> commandRotation(0.0)) // however it ends — stop
+        .whenCanceled(() -> commandRotation(0.0)) // however it ends — stop
         .named("Turn To Heading");
   }
 
@@ -159,7 +159,7 @@ public class Drivetrain implements Mechanism, PoseProvider {
         coroutine.yield();
       }
     })
-        .whenExited(() -> {
+        .whenCanceled(() -> {
           for (SwerveModule module : m_modules) {
             module.setDesiredState(new SwerveModuleVelocity()); // however it ends — stop
           }
