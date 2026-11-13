@@ -10,6 +10,7 @@ public interface ArmIO {
         public double appliedVolts = 0.0;
         public double setPointDegrees = 0.0;
         public double rollerVelocityRotPerSec = 0.0;
+        public boolean hasGamePiece;
     }
 
     public default void updateInputs(ArmIOInputs inputs) {}
@@ -17,6 +18,8 @@ public interface ArmIO {
     public default void setGoalAngleDegrees(double angleDegrees) {}
 
     public default void setRollerOutput(double output) {}
+
+    public boolean hasGamePiece = false;
 
     
 

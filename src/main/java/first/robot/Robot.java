@@ -55,6 +55,11 @@ public class Robot extends OpModeRobot {
 
   public final VisionPoseProvider camera = new VisionPoseProvider();
 
+    // Arm reads elevator.getCarriage() in its constructor, so elevator must be
+  // a finished object first — it already is, above. In simulation its intake
+  // also needs to know where the robot really is, which only drivetrain knows.
+  public final Arm arm = new Arm(elevator, drivetrain::getSimulatedPose);
+
   /**
    * This function is run when the robot is first started up and should be used
    * for any

@@ -16,6 +16,7 @@ import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 import static org.wpilib.units.Units.Volts;
+import static org.wpilib.units.Units.Seconds;
 
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
@@ -33,6 +34,8 @@ import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
+import org.wpilib.units.measure.Time;
+
 import org.wpilib.units.measure.Voltage;
 import org.wpilib.util.Color;
 import org.wpilib.util.Color8Bit;
@@ -153,7 +156,62 @@ public final class Constants {
 
     public static final double kIntakeSpeed = 0.6;
     public static final double kEjectSpeed = -0.6;
+
+        // The beam break: an infrared beam across the throat of the intake, broken
+    // when a game piece is actually sitting where it belongs.
+    public static final int kBeamBreakChannel = 1; // DIO — change to yours
+    public static final Time kBeamDebounce = Seconds.of(0.1);
+
+    // Sim only: the box in front of the bumper that the roller can reach, and
+    // where the game pieces lie on the field when the simulation starts.
+    public static final Distance kIntakeWidth = Inches.of(24);
+    public static final Distance kIntakeReach = Inches.of(12);
+    public static final Translation2d[] kSimGamePiecePositions = {
+        new Translation2d(4.5, 3.2),
+        new Translation2d(2.0, 1.5),
+        new Translation2d(6.0, 3.8),
+    };
   }
+
+public static final class ElevatorConstants {
+  public static final int kMotorPort = 20; // CAN ID — change to yours
+  public static final double kGearRatio = 12.0; // motor rotations per drum rotation
+  public static final Distance kDrumRadius = Inches.of(1.0);
+  public static final Mass kCarriageMass = Kilograms.of(5.0); // carriage + anything riding on it
+
+  public static final Distance kMinHeight = Meters.of(0.0);
+  public static final Distance kMaxHeight = Meters.of(1.5);
+
+  public static final LinearVelocity kMaxVelocity = MetersPerSecond.of(1.0);
+  public static final LinearAcceleration kMaxAcceleration = MetersPerSecondPerSecond.of(2.0);
+
+  public static final double kElevatorKG = 0.17; // volts to hold position against gravity
+  public static final double kElevatorKV = 1.42; // volts per drum rotation/sec
+  public static final double kElevatorKA = 0.003; // volts per drum rotation/sec^2
+  public static final double kElevatorKP = 20.0; // volts per drum rotation of error — the trim
+
+  public static final Distance kStowed = Meters.of(0.02);
+  public static final Distance kScoreMid = Meters.of(0.75);
+  public static final Distance kScoreHigh = Meters.of(1.45);
+
+  public static final Distance kTolerance = Centimeters.of(2);
+
+      // The stick-figure view. The canvas is measured in meters, like the field.
+    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayHeight = Meters.of(2.0);
+    public static final Distance kEffectorLength = Centimeters.of(25);
+    public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
+    public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
+
+        // Homing. The switch sits at the bottom of the frame; when it trips, the
+    // carriage is at kBottomLimitHeight whatever the encoder currently believes.
+    public static final int kBottomLimitChannel = 0; // DIO — change to yours
+    public static final Distance kBottomLimitHeight = Centimeters.of(1);
+    public static final Voltage kHomingVolts = Volts.of(-0.7);
+    /** Sim only: where the carriage physically sits at power-on. */
+    public static final Distance kSimStartHeight = Centimeters.of(35);
+}
+
   /**
    * ====== NEXT LESSON: ADD CODE HERE ======
    * Add a VisionConstants class: this season's field layout — where every
@@ -195,48 +253,6 @@ public final class Constants {
     public static final double kTranslationP = 5.0; // m/s per meter of path left
     public static final double kRotationP = 3.0; // rad/s per radian of heading error
     public static final double kCrossTrackP = 2.0; // m/s per meter off the line
-  }
-
-  public static final class ElevatorConstants {
-    public static final int kMotorPort = 20; // CAN ID — change to yours
-    public static final double kGearRatio = 12.0; // motor rotations per drum rotation
-    public static final Distance kDrumRadius = Inches.of(1.0);
-    public static final Mass kCarriageMass = Kilograms.of(5.0); // carriage + anything riding on it
-
-    public static final Distance kMinHeight = Meters.of(0.0);
-    public static final Distance kMaxHeight = Meters.of(1.5);
-
-    public static final LinearVelocity kMaxVelocity = MetersPerSecond.of(1.0);
-    public static final LinearAcceleration kMaxAcceleration = MetersPerSecondPerSecond.of(2.0);
-
-    // Feedforward + trim gains, computed from the Kraken X60 spec sheet — see the
-    // lesson's §3.
-    // SensorToMechanismRatio makes the closed loop run in drum rotations, so
-    // every gain below is drum-side (mechanism-side), not rotor-side.
-    public static final double kElevatorKG = 0.18; // volts to hold position against gravity
-    public static final double kElevatorKV = 1.44; // volts per drum rotation/sec
-    public static final double kElevatorKA = 0.003; // volts per drum rotation/sec^2
-    public static final double kElevatorKP = 20.0; // volts per drum rotation of error — the trim
-
-    public static final Distance kStowed = Meters.of(0.02);
-    public static final Distance kScoreMid = Meters.of(0.75);
-    public static final Distance kScoreHigh = Meters.of(1.45);
-
-    public static final Distance kTolerance = Centimeters.of(2);
-    // Homing. The switch sits at the bottom of the frame; when it trips, the
-    // carriage is at kBottomLimitHeight whatever the encoder currently believes.
-    public static final int kBottomLimitChannel = 0; // DIO — change to yours
-    public static final Distance kBottomLimitHeight = Centimeters.of(1);
-    public static final Voltage kHomingVolts = Volts.of(-0.7);
-    /** Sim only: where the carriage physically sits at power-on. */
-    public static final Distance kSimStartHeight = Centimeters.of(35);
-
-    public static final Distance kDisplayWidth = Meters.of(1.0);
-    public static final Distance kDisplayHeight = Meters.of(2.0);
-    public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
-    public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
-    public static final double kDrumCircumferenceMeters = 2 * Math.PI * kDrumRadius.in(Meters);
-    // Physical facts a physics engine needs that pure motor math never did.
   }
 
   public static final Mass kRobotMass = Kilogram.of(45); // with battery and bumpers
