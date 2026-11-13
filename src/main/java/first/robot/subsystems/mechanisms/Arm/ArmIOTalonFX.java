@@ -16,6 +16,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
 import first.robot.Constants.ArmConstants;
+import org.wpilib.hardware.discrete.DigitalInput;
 
 /** Real hardware behind the ArmIO contract: a profiled pivot and a dumb roller. */
 public class ArmIOTalonFX implements ArmIO {
@@ -23,6 +24,7 @@ public class ArmIOTalonFX implements ArmIO {
   protected final TalonFX m_pivot;
   protected final TalonFX m_roller;
   private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
+    private final DigitalInput m_beamBreak = new DigitalInput(ArmConstants.kBeamBreakChannel);
 
   public ArmIOTalonFX() {
     m_pivot = new TalonFX(ArmConstants.kPivotMotorPort, new CANBus(CANPort.CAN_S0));
@@ -54,6 +56,7 @@ public class ArmIOTalonFX implements ArmIO {
 
     m_pivot.getConfigurator().apply(config);
     m_roller.getConfigurator().apply(new TalonFXConfiguration());
+    
   }
 
   @Override
@@ -64,6 +67,10 @@ public class ArmIOTalonFX implements ArmIO {
     // Where the profile says we should be *right now* — not the final goal.
     inputs.setPointDegrees = Rotations.of(m_pivot.getClosedLoopReference().getValue()).in(Degrees);
     inputs.rollerVelocityRotPerSec = m_roller.getVelocity().getValue().in(RotationsPerSecond);
+        // Wired so that a broken beam pulls the line low. An unplugged sensor
+    // floats high, which reads as "no game piece": the harmless answer.
+    inputs.hasGamePiece = !m_beamBreak.get();
+    
   }
 
   @Override

@@ -28,6 +28,10 @@ public class Arm implements Mechanism {
   };
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private Angle m_goal = ArmConstants.kStowed;
+    /** Is a game piece actually sitting in the intake? The roller can't tell you. */
+  public boolean hasGamePiece() {
+    return m_inputs.hasGamePiece;
+  }
 
   /** The arm's segment in the elevator's drawing — it hangs off the carriage. */
   private final LoggedMechanismLigament2d m_ligament;

@@ -15,6 +15,7 @@ import org.wpilib.system.DataLogManager;
 import first.robot.subsystems.Drivetrain;
 import first.robot.subsystems.Localizer;
 import first.robot.subsystems.VisionPoseProvider;
+import first.robot.subsystems.mechanisms.Arm.Arm;
 
 /**
  * The methods in this class are called automatically as described in the OpModeRobot documentation.
@@ -42,6 +43,11 @@ public class Robot extends OpModeRobot {
    */
 
   public final VisionPoseProvider camera = new VisionPoseProvider();
+
+    // Arm reads elevator.getCarriage() in its constructor, so elevator must be
+  // a finished object first — it already is, above. In simulation its intake
+  // also needs to know where the robot really is, which only drivetrain knows.
+  public final Arm arm = new Arm(elevator, drivetrain::getSimulatedPose);
 
   /**
    * This function is run when the robot is first started up and should be used for any

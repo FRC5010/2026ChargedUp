@@ -12,10 +12,18 @@ import org.wpilib.opmode.Teleop;
 
 import first.robot.Constants.DriveConstants;
 import first.robot.Robot;
+import org.wpilib.command3.Trigger;
 
 @Teleop
 public class RobotTeleop extends PeriodicOpMode {
   private final Robot robot;
+      // Back homes the elevator: the encoder can't know where the carriage is
+    // at power-on, so drive down to the switch and let it say.
+    robot.driverController.back().onTrue(robot.elevator.home());
+
+    // A Trigger is any boolean the scheduler polls — it does not have to be
+    // a button. Whenever the switch trips, take its word for the height.
+    new Trigger(robot.elevator::atBottomLimit).onTrue(robot.elevator.rezeroAtBottom());
 
   /** The Robot instance is passed into the opmode via the constructor. */
   public RobotTeleop(Robot robot) {
@@ -42,6 +50,8 @@ public class RobotTeleop extends PeriodicOpMode {
             robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
         .named("Report Fake Sighting");
   }
+
+  
 
   @Override
   public void disabledPeriodic() {

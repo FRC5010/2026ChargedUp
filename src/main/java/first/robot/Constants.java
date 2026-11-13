@@ -14,6 +14,8 @@ import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.Volts;
+import static org.wpilib.units.Units.Seconds;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
@@ -24,6 +26,9 @@ import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
+import org.wpilib.units.measure.Time;
+
+import org.wpilib.units.measure.Voltage;
 import org.wpilib.util.Color;
 import org.wpilib.util.Color8Bit;
 
@@ -121,6 +126,21 @@ public final class Constants {
 
     public static final double kIntakeSpeed = 0.6;
     public static final double kEjectSpeed = -0.6;
+
+        // The beam break: an infrared beam across the throat of the intake, broken
+    // when a game piece is actually sitting where it belongs.
+    public static final int kBeamBreakChannel = 1; // DIO — change to yours
+    public static final Time kBeamDebounce = Seconds.of(0.1);
+
+    // Sim only: the box in front of the bumper that the roller can reach, and
+    // where the game pieces lie on the field when the simulation starts.
+    public static final Distance kIntakeWidth = Inches.of(24);
+    public static final Distance kIntakeReach = Inches.of(12);
+    public static final Translation2d[] kSimGamePiecePositions = {
+        new Translation2d(4.5, 3.2),
+        new Translation2d(2.0, 1.5),
+        new Translation2d(6.0, 3.8),
+    };
   }
 
 public static final class ElevatorConstants {
@@ -152,6 +172,14 @@ public static final class ElevatorConstants {
     public static final Distance kEffectorLength = Centimeters.of(25);
     public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
     public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
+
+        // Homing. The switch sits at the bottom of the frame; when it trips, the
+    // carriage is at kBottomLimitHeight whatever the encoder currently believes.
+    public static final int kBottomLimitChannel = 0; // DIO — change to yours
+    public static final Distance kBottomLimitHeight = Centimeters.of(1);
+    public static final Voltage kHomingVolts = Volts.of(-0.7);
+    /** Sim only: where the carriage physically sits at power-on. */
+    public static final Distance kSimStartHeight = Centimeters.of(35);
 }
 }
   /**
