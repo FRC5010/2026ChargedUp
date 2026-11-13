@@ -4,17 +4,15 @@ import static org.wpilib.units.Units.MetersPerSecond;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
-import org.wpilib.math.estimator.DifferentialDrivePoseEstimator;
-import org.wpilib.math.estimator.PoseEstimator;
 import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
-import org.wpilib.math.kinematics.DifferentialDriveKinematics;
 import org.wpilib.math.kinematics.SwerveDriveKinematics;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
@@ -29,18 +27,14 @@ import org.wpilib.telemetry.Telemetry;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
 
-
 import first.robot.Constants;
 import first.robot.Constants.DriveConstants;
 import first.robot.Constants.HeadingConstants;
-import gg.questnav.questnav.QuestNav;
 
 public class Drivetrain implements Mechanism, PoseProvider {
-  
+
   private final Field2d fieldSim = new Field2d();
   private final FieldObject2d questNavPoseObject = fieldSim.getObject("QuestNav Pose");
- 
-         
 
   // Corner order: FL, FR, BL, BR. Pick a convention and stick to it.
   private final SwerveModule[] m_modules = new SwerveModule[] {
@@ -67,32 +61,35 @@ public class Drivetrain implements Mechanism, PoseProvider {
   private final GyroIO m_gyroIO = switch (Constants.kCurrentMode) {
     case REAL -> new GyroIOPigeon2();
     case SIM -> new GyroIOSim();
-    case REPLAY -> new GyroIO() {}; // inputs come from the log
+    case REPLAY -> new GyroIO() {
+    }; // inputs come from the log
   };
-  private final GyroIO.GyroIOInputs m_gyroInputs = new GyroIO.GyroIOInputs();
+  private final GyroIOInputsAutoLogged m_gyroInputs = new GyroIOInputsAutoLogged();
 
-   private final SwerveDrivePoseEstimator m_poseEstimator =
-      new SwerveDrivePoseEstimator(
-        m_kinematics,
-        getRotation(),
-        getModulePositions(),
-        new Pose2d(),
-        VecBuilder.fill(0.05, 0.05, 0.05), // state std devs
-        VecBuilder.fill(0.1, 0.1, 0.1)
-      );
+  private final SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
+      m_kinematics,
+      getRotation(),
+      getModulePositions(),
+      new Pose2d(),
+      VecBuilder.fill(0.05, 0.05, 0.05), // state std devs
+      VecBuilder.fill(0.1, 0.1, 0.1));
 
   public Drivetrain() {
     Scheduler.getDefault().addPeriodic(this::periodic);
   }
 
-  /** Builds the right ModuleIO for the current mode, then wraps it in a SwerveModule. */
+  /**
+   * Builds the right ModuleIO for the current mode, then wraps it in a
+   * SwerveModule.
+   */
   private static SwerveModule makeModule(
       int index, int driveId, int steerId, int cancoderId, double magnetOffsetRotations,
       Translation2d location) {
     ModuleIO io = switch (Constants.kCurrentMode) {
       case REAL -> new ModuleIOTalonFX(driveId, steerId, cancoderId, magnetOffsetRotations);
       case SIM -> new ModuleIOSim(driveId, steerId, cancoderId, magnetOffsetRotations);
-      case REPLAY -> new ModuleIO() {}; // inputs come from the log
+      case REPLAY -> new ModuleIO() {
+      }; // inputs come from the log
     };
     return new SwerveModule(io, "Drivetrain/Module" + index, location);
   }
@@ -103,7 +100,8 @@ public class Drivetrain implements Mechanism, PoseProvider {
 
     // If the request would drive some wheel past the max, scale ALL wheels
     // down proportionally so the *shape* of the motion is preserved.
-    // desaturateWheelVelocities takes a LinearVelocity directly — pass kMaxSpeed as-is.
+    // desaturateWheelVelocities takes a LinearVelocity directly — pass kMaxSpeed
+    // as-is.
     states = SwerveDriveKinematics.desaturateWheelVelocities(states, DriveConstants.kMaxSpeed);
 
     m_gyroIO.setSimRotationRate(speeds.omega / (2 * Math.PI)); // rev/s for sim
@@ -113,14 +111,14 @@ public class Drivetrain implements Mechanism, PoseProvider {
       m_modules[i].setDesiredState(states[i]);
     }
 
-    Telemetry.log("Drivetrain/DesiredModuleStates", states, SwerveModuleVelocity.struct);
+    Logger.recordOutput("Drivetrain/DesiredModuleStates", states);
   }
 
   /** Drive with full swerve freedom: translate and rotate at once. */
   public Command drive(
       Supplier<LinearVelocity> vx, Supplier<LinearVelocity> vy, Supplier<AngularVelocity> omega) {
     return runRepeatedly(
-            () -> applyChassisSpeeds(new ChassisVelocities(vx.get(), vy.get(), omega.get())))
+        () -> applyChassisSpeeds(new ChassisVelocities(vx.get(), vy.get(), omega.get())))
         .named("Drive");
   }
 
@@ -136,58 +134,57 @@ public class Drivetrain implements Mechanism, PoseProvider {
   /** Turn to face 'targetDegrees'. Finishes when within 2°. */
   public Command turnToHeading(double targetDegrees) {
     return run(coroutine -> {
-          while (Math.abs(headingError(targetDegrees)) >= 2.0) {
-            double omega = clamp(
-                HeadingConstants.kP * headingError(targetDegrees),
-                -0.5, 0.5); // clamp to ±50% turn power
-            commandRotation(omega);
-            coroutine.yield();
-          }
-          commandRotation(0.0); // reached it — stop
-        })
-        .whenCanceled(() -> commandRotation(0.0)) // interrupted — stop
+      while (Math.abs(headingError(targetDegrees)) >= 2.0) {
+        double omega = clamp(
+            HeadingConstants.kP * headingError(targetDegrees),
+            -0.5, 0.5); // clamp to ±50% turn power
+        commandRotation(omega);
+        coroutine.yield();
+      }
+    })
+        .whenExited(() -> commandRotation(0.0)) // however it ends — stop
         .named("Turn To Heading");
   }
 
   /** Drive straight forward 'meters' at 40% power. Finishes on its own. */
   public Command driveDistance(double meters) {
     return run(coroutine -> {
-          m_modules[0].resetDrivePosition(); // zero one wheel's odometer
-          while (Math.abs(m_modules[0].getDistanceMeters()) < Math.abs(meters)) {
-            for (SwerveModule module : m_modules) {
-              module.setDesiredState(
-                  new SwerveModuleVelocity(DriveConstants.kMaxSpeed.times(0.4), Rotation2d.fromDegrees(0)));
-            }
-            m_gyroIO.setSimRotationRate(0.0);
-            coroutine.yield();
-          }
+      m_modules[0].resetDrivePosition(); // zero one wheel's odometer
+      while (Math.abs(m_modules[0].getDistanceMeters()) < Math.abs(meters)) {
+        for (SwerveModule module : m_modules) {
+          module.setDesiredState(
+              new SwerveModuleVelocity(DriveConstants.kMaxSpeed.times(0.4), Rotation2d.fromDegrees(0)));
+        }
+        m_gyroIO.setSimRotationRate(0.0);
+        coroutine.yield();
+      }
+    })
+        .whenExited(() -> {
           for (SwerveModule module : m_modules) {
-            module.setDesiredState(new SwerveModuleVelocity()); // reached it — stop
-          }
-        })
-        .whenCanceled(() -> {
-          for (SwerveModule module : m_modules) {
-            module.setDesiredState(new SwerveModuleVelocity()); // interrupted — stop
+            module.setDesiredState(new SwerveModuleVelocity()); // however it ends — stop
           }
         })
         .named("Drive Distance");
   }
 
-  /** Drive straight toward 'target' using P control, field-relative. Finishes within 5 cm. */
+  /**
+   * Drive straight toward 'target' using P control, field-relative. Finishes
+   * within 5 cm.
+   */
   public Command driveToPose(Pose2d target, Supplier<Pose2d> pose) {
     double maxMps = DriveConstants.kMaxSpeed.in(MetersPerSecond); // convert once, reuse
     return runRepeatedly(() -> {
-          Pose2d current = pose.get();
-          double dx = target.getX() - current.getX();
-          double dy = target.getY() - current.getY();
-          double vx = clamp(1.5 * dx, -maxMps, maxMps);
-          double vy = clamp(1.5 * dy, -maxMps, maxMps);
-          double omega = clamp(
-              3.0 * target.getRotation().minus(current.getRotation()).getRadians(),
-              -Math.PI, Math.PI);
-          ChassisVelocities fieldSpeeds = new ChassisVelocities(vx, vy, omega);
-          applyChassisSpeeds(fieldSpeeds.toRobotRelative(current.getRotation()));
-        })
+      Pose2d current = pose.get();
+      double dx = target.getX() - current.getX();
+      double dy = target.getY() - current.getY();
+      double vx = clamp(1.5 * dx, -maxMps, maxMps);
+      double vy = clamp(1.5 * dy, -maxMps, maxMps);
+      double omega = clamp(
+          3.0 * target.getRotation().minus(current.getRotation()).getRadians(),
+          -Math.PI, Math.PI);
+      ChassisVelocities fieldSpeeds = new ChassisVelocities(vx, vy, omega);
+      applyChassisSpeeds(fieldSpeeds.toRobotRelative(current.getRotation()));
+    })
         .whenCanceled(() -> applyChassisSpeeds(new ChassisVelocities())) // reached it or interrupted — stop
         .until(() -> pose.get().minus(target).getTranslation().getNorm() < 0.05)
         .named("Drive To Pose");
@@ -245,7 +242,7 @@ public class Drivetrain implements Mechanism, PoseProvider {
 
   private void periodic() {
     m_gyroIO.updateInputs(m_gyroInputs);
-    Telemetry.log("Drivetrain/Gyro/YawDegrees", m_gyroInputs.yawDegrees);
+    Logger.processInputs("Drivetrain/Gyro", m_gyroInputs);
 
     SwerveModuleVelocity[] states = new SwerveModuleVelocity[4];
     int index = 0;
@@ -256,33 +253,33 @@ public class Drivetrain implements Mechanism, PoseProvider {
           Rotation2d.fromDegrees(module.getSteerAngleDegrees()));
       index++;
     }
-    Telemetry.log("Drivetrain/ModuleStates", states, SwerveModuleVelocity.struct);
+    Logger.recordOutput("Drivetrain/ModuleStates", states);
 
     Telemetry.log("Drivetrain/HeadingDegrees", getHeadingDegrees());
     Telemetry.log("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()), Rotation2d.struct);
-    
+
     m_poseEstimator.update(
-    getRotation(),
-    getModulePositions()
-  );
+        getRotation(),
+        getModulePositions());
+    Logger.recordOutput("Drivetrain/HeadingDegrees", getHeadingDegrees());
+    Logger.recordOutput("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()));
   }
 
   public void setQuestNavePose(Pose2d pose) {
     questNavPoseObject.setPose(pose);
-    }
+  }
 
-    public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
-    
+  public void addVisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+
     m_poseEstimator.addVisionMeasurement(visionPose, timestamp, stdDevs);
   }
-  
+
   public void resetPoseFromQuestNav(Pose2d pose) {
     m_poseEstimator.resetPosition(getRotation(), getModulePositions(), pose);
-  } 
+  }
 
   public Pose2d getEstimatedPose() {
     return m_poseEstimator.getEstimatedPosition();
   }
 
 }
-

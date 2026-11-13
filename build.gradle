@@ -88,7 +88,9 @@ test {
 }
 
 // Simulation configuration (e.g. environment variables).
-wpi.sim.addGui().defaultEnabled = true
+// AdvantageKit replay refuses to run with any simulation extension loaded,
+// so the GUI loads unless AKIT_LOG_PATH names a log to replay.
+wpi.sim.addGui().defaultEnabled = System.getenv("AKIT_LOG_PATH") == null
 wpi.sim.addDriverstation()
 
 application.mainClass = ROBOT_MAIN_CLASS
@@ -106,4 +108,17 @@ jar {
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+// AdvantageKit (Lesson 13). @AutoLog writes each inputs class's logging code
+// while the project compiles; replayWatch replays a log again every time you
+// save a change.
+task(replayWatch, type: JavaExec) {
+    mainClass = "org.littletonrobotics.junction.ReplayWatch"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+dependencies {
+    def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 }
