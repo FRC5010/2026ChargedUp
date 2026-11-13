@@ -9,13 +9,15 @@ import org.wpilib.command3.Scheduler;
 import org.wpilib.command3.SchedulerEvent;
 import org.wpilib.command3.button.CommandGamepad;
 import org.wpilib.framework.OpModeRobot;
-import org.wpilib.telemetry.Telemetry;
 import org.wpilib.system.DataLogManager;
+import org.wpilib.telemetry.Telemetry;
 
 import first.robot.subsystems.Drivetrain;
 import first.robot.subsystems.Elevator;
 import first.robot.subsystems.Localizer;
+import first.robot.subsystems.Superstructure;
 import first.robot.subsystems.VisionPoseProvider;
+import first.robot.subsystems.mechanisms.Arm.Arm;
 
 /**
  * The methods in this class are called automatically as described in the
@@ -38,6 +40,8 @@ public class Robot extends OpModeRobot {
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
   public final Elevator elevator = new Elevator();
+  public final Arm arm = new Arm(elevator);
+  public final Superstructure superstructure = new Superstructure(elevator, arm);
 
   /**
    * ====== NEXT LESSON: CHANGE THE CODE BELOW ======

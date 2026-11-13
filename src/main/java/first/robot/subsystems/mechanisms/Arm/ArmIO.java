@@ -1,6 +1,9 @@
 package first.robot.subsystems.mechanisms.Arm;
 
+import org.littletonrobotics.junction.AutoLog;
+
 public interface ArmIO {
+    @AutoLog
     public static class ArmIOInputs {
         public double angleDegrees = 0.0;
         public double velocityDegPerSec = 0.0;

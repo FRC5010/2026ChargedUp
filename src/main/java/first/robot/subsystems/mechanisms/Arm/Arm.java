@@ -13,7 +13,7 @@ import org.wpilib.units.measure.Angle;
 import first.robot.Constants;
 import first.robot.Constants.ArmConstants;
 import first.robot.Constants.ElevatorConstants;
-import first.robot.subsystems.mechanisms.Elevator.Elevator;
+import first.robot.subsystems.Elevator;
 
 /**
  * An intake arm on the same spine as the elevator: an ArmIO chosen by the

@@ -1,16 +1,12 @@
 package first.robot.subsystems;
 
+import static org.wpilib.units.Units.Amps;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.Rotations;
 import static org.wpilib.units.Units.RotationsPerSecond;
 import static org.wpilib.units.Units.Volts;
-import static org.wpilib.units.Units.Amps;
-
-
-import com.ctre.phoenix6.controls.VoltageOut;
-import org.wpilib.hardware.discrete.DigitalInput;
 
 import org.wpilib.hardware.bus.CANPort;
 import org.wpilib.hardware.discrete.DigitalInput;

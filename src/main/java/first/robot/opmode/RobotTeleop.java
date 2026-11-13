@@ -33,6 +33,9 @@ public class RobotTeleop extends PeriodicOpMode {
 
     // Tap the bottom face button to turn and face 90°; the right face button for
     // 0°.
+    robot.driverController.faceLeft().onTrue(robot.superstructure.requestIntake());
+    robot.driverController.faceUp().onTrue(robot.superstructure.requestIdle());
+    robot.driverController.rightTrigger().onTrue(robot.superstructure.requestScore());
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
     robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));

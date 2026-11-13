@@ -233,7 +233,6 @@ public final class Constants {
 
     public static final Distance kDisplayWidth = Meters.of(1.0);
     public static final Distance kDisplayHeight = Meters.of(2.0);
-    public static final Distance kEffectorLength = Centimeters.of(25);
     public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
     public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
     public static final double kDrumCircumferenceMeters = 2 * Math.PI * kDrumRadius.in(Meters);
