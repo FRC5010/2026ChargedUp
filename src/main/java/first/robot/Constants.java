@@ -34,6 +34,9 @@ import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
 import org.wpilib.units.measure.Voltage;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
+
 import com.ctre.phoenix6.signals.InvertedValue;
 import first.robot.Constants.DriveConstants;
 import org.wpilib.units.measure.Voltage;
@@ -151,7 +154,6 @@ public final class Constants {
     public static final double kIntakeSpeed = 0.6;
     public static final double kEjectSpeed = -0.6;
   }
-
   /**
    * ====== NEXT LESSON: ADD CODE HERE ======
    * Add a VisionConstants class: this season's field layout — where every
@@ -229,14 +231,11 @@ public final class Constants {
     /** Sim only: where the carriage physically sits at power-on. */
     public static final Distance kSimStartHeight = Centimeters.of(35);
 
-    /**
-     * ====== NEXT LESSON: ADD CODE HERE ======
-     * Add the numbers for a stick-figure drawing of the elevator: the canvas's
-     * width
-     * and height, the length of the piece riding on top of the carriage, and a
-     * color
-     * for moving and another for arrived.
-     */
+    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayHeight = Meters.of(2.0);
+    public static final Distance kEffectorLength = Centimeters.of(25);
+    public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
+    public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
     public static final double kDrumCircumferenceMeters = 2 * Math.PI * kDrumRadius.in(Meters);
     // Physical facts a physics engine needs that pure motor math never did.
   }
