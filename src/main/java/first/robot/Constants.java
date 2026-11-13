@@ -4,11 +4,14 @@
 
 package first.robot;
 
+import static org.wpilib.units.Units.Degree;
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
 
 import org.wpilib.framework.RobotBase;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
 
@@ -91,6 +94,10 @@ public final class Constants {
     //TODO: Add the correct CAN Ids once other groups are finished
     public static int kPivotMotorPort = 10;
     public static int kPivotEncoderPort = 11;
+    public static final int kRollerMotorPort = 22;
+
+    public static final Angle kIntake = Degrees.of(-20);
+     public static final double kIntakeSpeed = 0.6;
 
     public static double kGearRatio = 50.0;
 

@@ -21,7 +21,7 @@ public class RobotTeleop extends PeriodicOpMode {
   public RobotTeleop(Robot robot) {
     this.robot = robot;
 
-    // Classic swerve default: left stick translates (field-relative), right
+    // Classic swerve default: left stick transl mates (field-relative), right
     // stick rotates.
     robot.drivetrain.setDefaultCommand(
         robot.drivetrain.driveFieldRelative(
