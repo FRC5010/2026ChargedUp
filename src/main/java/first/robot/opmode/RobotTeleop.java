@@ -42,6 +42,7 @@ public class RobotTeleop extends PeriodicOpMode {
             robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
         .named("Report Fake Sighting");
   }
+    
 
   @Override
   public void disabledPeriodic() {
