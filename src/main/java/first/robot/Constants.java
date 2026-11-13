@@ -71,7 +71,8 @@ public final class Constants {
     public static final int kBackRightDrivePort = 7;
     public static final int kBackRightSteerPort = 8;
     public static final int kBackRightCancoderPort = 12;
-    public static final int kGyroPort = 0; // CAN ID — change to yours
+    public static final int kGyroPort = 0;     
+    public static final Distance kEffectorLength = Centimeters.of(25);          // CAN ID — change to yours
 
     // Magnet offsets (rotations) — measure with Phoenix Tuner X, change to yours.
     public static final double kFrontLeftMagnetOffset = 0.0;
@@ -255,10 +256,11 @@ public static final class ElevatorConstants {
     public static final double kCrossTrackP = 2.0; // m/s per meter off the line
   }
 
-  public static final Mass kRobotMass = Kilogram.of(45); // with battery and bumpers
-  public static final Distance kBumperLength = Inches.of(30); // front-to-back, over bumpers
-  public static final Distance kBumperWidth = Inches.of(30); // side-to-side, over bumpers
-  public static final Distance kWheelRadius = Meters.of(DriveConstants.kWheelDiameterMeters / 2);
+    // Physical facts a physics engine needs that pure motor math never did.
+  public static final Mass kRobotMass = Kilogram.of(45);          // with battery and bumpers
+  public static final Distance kBumperLength = Inches.of(30);      // front-to-back, over bumpers
+  public static final Distance kBumperWidth  = Inches.of(30);      // side-to-side, over bumpers
+  public static final Distance kWheelRadius  = Meters.of(DriveConstants.kWheelDiameterMeters / 2);
   /** Where the simulated robot is placed on the field at startup. */
   public static final Pose2d kSimStartingPose = new Pose2d(3, 3, new Rotation2d());
 }

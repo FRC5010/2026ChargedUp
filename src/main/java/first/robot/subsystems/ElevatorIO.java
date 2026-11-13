@@ -12,7 +12,6 @@ public interface ElevatorIO {
     public boolean atBottomLimit = false;
 
   }
-
   /** Read every sensor into 'inputs'. Called once per tick, before anything else. */
   public default void updateInputs(ElevatorIOInputs inputs) {}
 

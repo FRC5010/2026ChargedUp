@@ -1,17 +1,20 @@
 package first.robot.subsystems;
 
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.Meters;
-
+import static org.wpilib.units.Units.Volts;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.units.measure.Distance;
 
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 
 import first.robot.Constants;
 import first.robot.Constants.ElevatorConstants;
-
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 /** Scoring elevator: Motion Magic profiles the move, Slot0's feedforward model holds it there. */
 public class Elevator implements Mechanism {
   private final ElevatorIO m_io = switch (Constants.kCurrentMode) {
@@ -32,6 +35,7 @@ public class Elevator implements Mechanism {
   public Elevator() {
     Scheduler.getDefault().addPeriodic(this::periodic);
   }
+    /** The mount point on top of the carriage. Anything appended here rides along. */
 
   /** One tick of sensing: read the hardware into the bundle and log it. */
   private void periodic() {
@@ -56,7 +60,18 @@ public class Elevator implements Mechanism {
         .until(this::atGoal)
         .named("Go To Height");
   }
-
+    // The picture: a canvas, one point anchored to it, and a chain of segments.
+    private final LoggedMechanism2d m_mechanism = new LoggedMechanism2d(
+            ElevatorConstants.kDisplayWidth, ElevatorConstants.kDisplayHeight);
+    private final LoggedMechanismRoot2d m_base = m_mechanism.getRoot(
+            "Base", ElevatorConstants.kDisplayWidth.in(Meters) / 2, 0);
+    /** Straight up from the base. Its length is the carriage height. */
+    private final LoggedMechanismLigament2d m_carriage = m_base.append(
+            new LoggedMechanismLigament2d("Carriage", Meters.of(0), Degrees.of(90)));
+    /** Rides on top of the carriage. Lesson 20 puts a real arm here. */
+    private final LoggedMechanismLigament2d m_effector = m_carriage.append(
+            new LoggedMechanismLigament2d(
+                    "Effector", ElevatorConstants.kEffectorLength, Degrees.of(-90)));
   public boolean atGoal() {
     return Math.abs(m_inputs.heightMeters - m_goal.in(Meters)) < ElevatorConstants.kTolerance.in(Meters);
   }
@@ -64,7 +79,12 @@ public class Elevator implements Mechanism {
   public double getHeightMeters() {
     return m_inputs.heightMeters;
   }
+    /** The mount point on top of the carriage. Anything appended here rides along. */
+       /** Rides on top of the carriage. Lesson 20 puts a real arm here. */
 
+    public LoggedMechanismLigament2d getCarriage() {
+        return m_carriage;
+    }
   /** Keeps 'target' inside [kMinHeight, kMaxHeight] — there's no MathUtil.clamp to reach for here. */
   private static Distance clampToTravel(Distance target) {
     if (target.gt(ElevatorConstants.kMaxHeight)) {
