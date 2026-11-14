@@ -7,7 +7,6 @@ import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.units.measure.Distance;
-
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 
@@ -25,12 +24,6 @@ public class Elevator implements Mechanism {
   private final ElevatorIOInputsAutoLogged m_inputs = new ElevatorIOInputsAutoLogged();
   private Distance m_goal = ElevatorConstants.kStowed;
 
-  /**
-   * ====== NEXT LESSON: ADD CODE HERE ======
-   * Add the drawing as fields, so it lasts between ticks: a canvas, a base point
-   * anchored to it, the carriage as a segment pointing straight up from the base, and
-   * a short piece attached to the top of the carriage.
-   */
 
   public Elevator() {
     Scheduler.getDefault().addPeriodic(this::periodic);
@@ -43,12 +36,6 @@ public class Elevator implements Mechanism {
     Logger.processInputs("Elevator", m_inputs); // every reading, under Elevator/
     Logger.recordOutput("Elevator/GoalMeters", m_goal.in(Meters));
 
-    /**
-     * ====== NEXT LESSON: ADD CODE HERE ======
-     * Set the carriage segment's length from the height, color it by whether it's at
-     * the goal, then record the whole drawing as an output — every tick, like every
-     * number above.
-     */
   }
 
   /** Send the carriage to 'target', clamped to safe travel. Keeps holding once it arrives. */
@@ -59,6 +46,37 @@ public class Elevator implements Mechanism {
         })
         .until(this::atGoal)
         .named("Go To Height");
+  }
+
+  /**
+   * Drive gently downward until the switch trips, then believe it. Open loop on
+   * purpose: the encoder is exactly the thing we don't trust yet.
+   */
+  public Command home() {
+    return run(() -> m_io.setVoltage((double) ElevatorConstants.kHomingVolts))
+        .until(this::atBottomLimit)
+        .finallyDo(() -> {
+          m_io.setVoltage(0);
+          acceptBottomLimit();
+          m_goal = ElevatorConstants.kBottomLimitHeight;
+        });
+  }
+
+  private Command run(Runnable commandBody) {
+    return Commands.run(commandBody, this);
+  }
+
+    /** The switch knows where the carriage is. The encoder only had an opinion. */
+    private void acceptBottomLimit() {
+        m_io.setPositionMeters(ElevatorConstants.kBottomLimitHeight.in(Meters));
+    }
+
+  public boolean atBottomLimit() {
+    return m_inputs.atBottomLimit;
+  }
+
+  public Command rezeroAtBottom() {
+    return Commands.runOnce(this::acceptBottomLimit).ignoringDisable(true);
   }
     // The picture: a canvas, one point anchored to it, and a chain of segments.
     private final LoggedMechanism2d m_mechanism = new LoggedMechanism2d(
@@ -78,6 +96,16 @@ public class Elevator implements Mechanism {
 
   public double getHeightMeters() {
     return m_inputs.heightMeters;
+  }
+
+  /** Open-loop drive, for homing: no goal, no profile, just a voltage. */
+  public void setVoltage(double volts) {
+    m_io.setVoltage(volts);
+  }
+
+  /** Declare the carriage to be at this height right now, whatever it read before. */
+  public void setPositionMeters(double heightMeters) {
+    m_io.setPositionMeters(heightMeters);
   }
     /** The mount point on top of the carriage. Anything appended here rides along. */
        /** Rides on top of the carriage. Lesson 20 puts a real arm here. */

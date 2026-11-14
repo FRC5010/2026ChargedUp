@@ -29,8 +29,6 @@ import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
-import org.wpilib.util.Color;
-import org.wpilib.util.Color8Bit;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -190,6 +188,7 @@ public final class Constants {
      */
     public static final double kDrumCircumferenceMeters =
         2 * Math.PI * kDrumRadius.in(Meters);
+    public static Object kHomingVolts;
   }
     // Physical facts a physics engine needs that pure motor math never did.
   public static final Mass kRobotMass = Kilogram.of(45);          // with battery and bumpers

@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
+import org.wpilib.command3.Trigger;
 import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -233,5 +234,13 @@ public class Drivetrain implements Mechanism, PoseProvider {
 
     Telemetry.log("Drivetrain/HeadingDegrees", getHeadingDegrees());
     Telemetry.log("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()), Rotation2d.struct);
+        Object m_driverController;
+    // Back homes the elevator: the encoder can't know where the carriage is at
+    // power-on, so drive down to the switch and let it say.
+    m_driverController.back().onTrue(m_elevator.home());
+
+    // A Trigger is any boolean the scheduler polls — it does not have to be a
+    // button. Whenever the switch trips, take its word for the height.
+    new Trigger(m_elevator::atBottomLimit).onTrue(m_elevator.rezeroAtBottom());
   }
 }
