@@ -52,20 +52,28 @@ public class Elevator implements Mechanism {
    * Drive gently downward until the switch trips, then believe it. Open loop on
    * purpose: the encoder is exactly the thing we don't trust yet.
    */
+    /**
+   * Drive gently downward until the switch trips, then believe it. Open loop
+   * on purpose: the encoder is exactly the thing we don't trust yet.
+   */
   public Command home() {
-    return run(() -> m_io.setVoltage((double) ElevatorConstants.kHomingVolts))
-        .until(this::atBottomLimit)
-        .finallyDo(() -> {
+    return runRepeatedly(() -> m_io.setVoltage(ElevatorConstants.kHomingVolts.in(Volts)))
+        .whenCanceled(() -> {
           m_io.setVoltage(0);
           acceptBottomLimit();
           m_goal = ElevatorConstants.kBottomLimitHeight;
-        });
+        })
+        .until(this::atBottomLimit)
+        .named("Home");
+        
   }
 
-  private Command run(Runnable commandBody) {
-    return Commands.run(commandBody, this);
-  }
-
+public Command rezeroAtBottom() {
+  return Command.noRequirements(coroutine -> acceptBottomLimit()).named("Rezero At Bottom");
+}
+public boolean isHomed() {
+  return true;
+}
     /** The switch knows where the carriage is. The encoder only had an opinion. */
     private void acceptBottomLimit() {
         m_io.setPositionMeters(ElevatorConstants.kBottomLimitHeight.in(Meters));
@@ -75,9 +83,6 @@ public class Elevator implements Mechanism {
     return m_inputs.atBottomLimit;
   }
 
-  public Command rezeroAtBottom() {
-    return Commands.runOnce(this::acceptBottomLimit).ignoringDisable(true);
-  }
     // The picture: a canvas, one point anchored to it, and a chain of segments.
     private final LoggedMechanism2d m_mechanism = new LoggedMechanism2d(
             ElevatorConstants.kDisplayWidth, ElevatorConstants.kDisplayHeight);

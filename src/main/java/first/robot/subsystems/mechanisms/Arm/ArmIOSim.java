@@ -4,11 +4,11 @@ import static org.wpilib.units.Units.Kilograms;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.Radians;
 
-import java.lang.System.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
@@ -21,6 +21,7 @@ import org.wpilib.system.RobotController;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import first.robot.Constants.ArmConstants;
+import first.robot.Constants.DriveConstants;
 
 /**
  * The sim implementation: the real TalonFX class (Phoenix simulates its own
@@ -91,8 +92,11 @@ public class ArmIOSim extends ArmIOTalonFX {
       pieces[i] = new Pose2d(m_piecesOnField.get(i), new Rotation2d());
     }
     Logger.recordOutput("Sim/GamePieces", pieces); // simulation only: no replay has a field
+
+
+  }
       @Override
-  public void setRollerOutput(double output) {
+    public void setRollerOutput(double output) {
     super.setRollerOutput(output);
     m_rollerOutput = output;
     if (output < 0 && m_holdingPiece) {
@@ -104,8 +108,12 @@ public class ArmIOSim extends ArmIOTalonFX {
       m_holdingPiece = false;
     }
   }
-  }
-
+private boolean inReach(Translation2d piece) {
+  Pose2d robot = m_robotPose.get();
+  Translation2d pieceInRobot = piece.minus(robot.getTranslation()).rotateBy(robot.getRotation().unaryMinus());
+  double front = DriveConstants.kHalfLength;
+  return pieceInRobot.getX() < front && pieceInRobot.getX() > front - 0.5 && Math.abs(pieceInRobot.getY()) < 0.5;
+}
   /** One tick of pretend reality: our voltage in, its motion back out. */
   private void stepSim() {
     m_pivotSim.setSupplyVoltage(RobotController.getBatteryVoltage());

@@ -9,15 +9,12 @@ import static org.wpilib.units.Units.RotationsPerSecond;
 import static org.wpilib.units.Units.Volts;
 import com.ctre.phoenix6.controls.VoltageOut;
 
-import org.wpilib.hardware.discrete.DigitalInput;
 
 import org.wpilib.hardware.bus.CANPort;
-import org.wpilib.hardware.discrete.DigitalInput;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 
@@ -29,9 +26,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private final MotionMagicVoltage m_request = new MotionMagicVoltage(0);
     private final VoltageOut m_openLoop = new VoltageOut(0);
     private final org.wpilib.hardware.discrete.DigitalInput m_bottomLimit =
-            new org.wpilib.hardware.discrete.DigitalInput(ElevatorConstants.kMotorPort);
-    private final org.wpilib.hardware.discrete.DigitalInput m_topLimit =
-            new org.wpilib.hardware.discrete.DigitalInput(ElevatorConstants.kMotorPort);
+            new org.wpilib.hardware.discrete.DigitalInput(ElevatorConstants.kBottomLimitChannel);
   public ElevatorIOTalonFX() {
     m_motor = new TalonFX(ElevatorConstants.kMotorPort, new CANBus(CANPort.CAN_S0));
 

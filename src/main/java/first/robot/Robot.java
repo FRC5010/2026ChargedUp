@@ -40,7 +40,7 @@ public class Robot extends OpModeRobot {
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
   public final Elevator elevator = new Elevator();
-  public final Arm arm = new Arm(elevator);
+  public final Arm arm = new Arm(elevator, localizer::getPose);
   public final Superstructure superstructure = new Superstructure(elevator, arm);
 
   /**
@@ -58,7 +58,7 @@ public class Robot extends OpModeRobot {
     // Arm reads elevator.getCarriage() in its constructor, so elevator must be
   // a finished object first — it already is, above. In simulation its intake
   // also needs to know where the robot really is, which only drivetrain knows.
-  public final Arm arm = new Arm(elevator, drivetrain::getSimulatedPose);
+
 
   /**
    * This function is run when the robot is first started up and should be used

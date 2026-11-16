@@ -2,12 +2,14 @@ package first.robot.subsystems.mechanisms.Arm;
 
 import static org.wpilib.units.Units.Degrees;
 
-import java.util.logging.Logger;
+import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
+import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.units.measure.Angle;
 
 import first.robot.Constants;
@@ -21,11 +23,7 @@ import first.robot.subsystems.Elevator;
  * to swing. Two motors, one mechanism — they are one physical thing.
  */
 public class Arm implements Mechanism {
-  private final ArmIO m_io = switch (Constants.kCurrentMode) {
-    case REAL -> new ArmIOTalonFX();
-    case SIM -> new ArmIOSim();
-    case REPLAY -> new ArmIO() {}; // inputs come from the log
-  };
+  private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private Angle m_goal = ArmConstants.kStowed;
     /** Is a game piece actually sitting in the intake? The roller can't tell you. */
@@ -36,7 +34,12 @@ public class Arm implements Mechanism {
   /** The arm's segment in the elevator's drawing — it hangs off the carriage. */
   private final LoggedMechanismLigament2d m_ligament;
 
-  public Arm(Elevator elevator) {
+  public Arm(Elevator elevator, Supplier<Pose2d> simulateRobotPose) {
+    m_io = switch (Constants.kCurrentMode) {
+    case REAL -> new ArmIOTalonFX();
+    case SIM -> new ArmIOSim(simulateRobotPose);
+    case REPLAY -> new ArmIO() {}; // inputs come from the log
+  };
     m_ligament = elevator.getCarriage().append(new LoggedMechanismLigament2d(
         "Arm", ArmConstants.kArmLength, toDrawingAngle(ArmConstants.kMinAngle)));
     Scheduler.getDefault().addPeriodic(this::periodic);
