@@ -1,5 +1,6 @@
 package first.robot.subsystems;
 
+import static org.wpilib.units.Units.Amps;
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
@@ -10,13 +11,15 @@ import com.ctre.phoenix6.controls.VoltageOut;
 
 import org.wpilib.hardware.discrete.DigitalInput;
 
+import org.wpilib.hardware.bus.CANPort;
+import org.wpilib.hardware.discrete.DigitalInput;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
-
-import org.wpilib.hardware.bus.CANPort;
 
 import first.robot.Constants.ElevatorConstants;
 
@@ -57,6 +60,11 @@ public class ElevatorIOTalonFX implements ElevatorIO {
         rotationsToMeters(m_motor.getVelocity().getValue().in(RotationsPerSecond));
     inputs.appliedVolts = m_motor.getMotorVoltage().getValue().in(Volts);
     inputs.setpointMeters = rotationsToMeters(m_motor.getClosedLoopReference().getValue());
+    inputs.statorCurrentAmps = m_motor.getStatorCurrent().getValue().in(Amps);
+    // Normally closed to ground: the switch holds this line low while the
+    // carriage is clear of it, so "high" means tripped — or a broken wire.
+    inputs.atBottomLimit = m_bottomLimit.get();
+
   }
 
   @Override
@@ -65,15 +73,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     m_motor.setControl(m_request.withPosition(Rotations.of(metersToRotations(meters))));
   }
 
-  /** Drum rotations for a given carriage height — the drum's circumference does the conversion. */
-  protected static double metersToRotations(double meters) {
-    return meters / (2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters));
-  }
-
-  protected static double rotationsToMeters(double rotations) {
-    return rotations * 2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters);
-  }
-  @Override
+    @Override
   public void setVoltage(double volts) {
     m_motor.setControl(m_openLoop.withOutput(volts));
   }
@@ -81,5 +81,15 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   @Override
   public void setPositionMeters(double heightMeters) {
     m_motor.setPosition(metersToRotations(heightMeters));
+  }
+
+
+  /** Drum rotations for a given carriage height — the drum's circumference does the conversion. */
+  protected static double metersToRotations(double meters) {
+    return meters / (2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters));
+  }
+
+  protected static double rotationsToMeters(double rotations) {
+    return rotations * 2 * Math.PI * ElevatorConstants.kDrumRadius.in(Meters);
   }
 }

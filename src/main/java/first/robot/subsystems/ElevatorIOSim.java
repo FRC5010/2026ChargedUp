@@ -22,7 +22,7 @@ public class ElevatorIOSim extends ElevatorIOTalonFX {
       ElevatorConstants.kMinHeight.in(Meters),
       ElevatorConstants.kMaxHeight.in(Meters),
       true, // simulateGravity — an unpowered carriage falls
-      ElevatorConstants.kStowed.in(Meters));
+      ElevatorConstants.kSimStartHeight.in(Meters));
 
   public ElevatorIOSim() {
     super(); // build the motor and apply the real configs

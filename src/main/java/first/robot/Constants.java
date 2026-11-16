@@ -6,6 +6,8 @@ package first.robot;
 
 import static org.wpilib.units.Units.Centimeters;
 import static org.wpilib.units.Units.Degrees;
+import static org.wpilib.units.Units.DegreesPerSecond;
+import static org.wpilib.units.Units.DegreesPerSecondPerSecond;
 import static org.wpilib.units.Units.Inches;
 import static org.wpilib.units.Units.Kilogram;
 import static org.wpilib.units.Units.Kilograms;
@@ -13,6 +15,8 @@ import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.MetersPerSecondPerSecond;
 import static org.wpilib.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.Volts;
+import static org.wpilib.units.Units.Seconds;
 
 import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
@@ -24,25 +28,35 @@ import org.wpilib.math.geometry.Transform3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.AngularAcceleration;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Distance;
 import org.wpilib.units.measure.LinearAcceleration;
 import org.wpilib.units.measure.LinearVelocity;
 import org.wpilib.units.measure.Mass;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
 
 import com.ctre.phoenix6.signals.InvertedValue;
+import first.robot.Constants.DriveConstants;
+import org.wpilib.units.measure.Voltage;
 
 public final class Constants {
-  public enum Mode { REAL, SIM, REPLAY }
+  public enum Mode {
+    REAL, SIM, REPLAY
+  }
 
-  /** Change kSimMode to Mode.REPLAY to re-run a log file instead of simulating fresh. */
+  /**
+   * Change kSimMode to Mode.REPLAY to re-run a log file instead of simulating
+   * fresh.
+   */
   public static final Mode kSimMode = Mode.SIM;
   public static final Mode kCurrentMode = RobotBase.isReal() ? Mode.REAL : kSimMode;
 
   // One CAN ID + one magnet offset per corner, all named, instead of
   // literals baked into the array in Drivetrain.
   public static final class DriveConstants {
-    public static final int kFrontLeftDrivePort = 1;     // CAN IDs — change to yours
+    public static final int kFrontLeftDrivePort = 1; // CAN IDs — change to yours
     public static final int kFrontLeftSteerPort = 2;
     public static final int kFrontLeftCancoderPort = 9;
     public static final int kFrontRightDrivePort = 3;
@@ -55,7 +69,7 @@ public final class Constants {
     public static final int kBackRightSteerPort = 8;
     public static final int kBackRightCancoderPort = 12;
     public static final int kGyroPort = 0;     
-        public static final Distance kEffectorLength = Centimeters.of(25);          // CAN ID — change to yours
+    public static final Distance kEffectorLength = Centimeters.of(25);          // CAN ID — change to yours
 
     // Magnet offsets (rotations) — measure with Phoenix Tuner X, change to yours.
     public static final double kFrontLeftMagnetOffset = 0.0;
@@ -63,30 +77,29 @@ public final class Constants {
     public static final double kBackLeftMagnetOffset = 0.0;
     public static final double kBackRightMagnetOffset = 0.0;
 
-    public static final double kDriveGearRatio = 6.75;                 // rotor : wheel
-    public static final double kWheelDiameterMeters = 0.1016;          // 4 inch wheel
-    public static final double kWheelCircumferenceMeters =
-        Math.PI * kWheelDiameterMeters;                                // ≈ 0.319 m
+    public static final double kDriveGearRatio = 6.75; // rotor : wheel
+    public static final double kWheelDiameterMeters = 0.1016; // 4 inch wheel
+    public static final double kWheelCircumferenceMeters = Math.PI * kWheelDiameterMeters; // ≈ 0.319 m
 
-    public static final double kHalfLength = 0.3;  // meters, wheelbase / 2
-    public static final double kHalfWidth  = 0.3;  // meters, track width / 2
+    public static final double kHalfLength = 0.3; // meters, wheelbase / 2
+    public static final double kHalfWidth = 0.3; // meters, track width / 2
 
     // +X is forward, +Y is left, yaw is CCW-positive.
-    public static final Translation2d kFrontLeft  = new Translation2d( kHalfLength,  kHalfWidth);
-    public static final Translation2d kFrontRight = new Translation2d( kHalfLength, -kHalfWidth);
-    public static final Translation2d kBackLeft   = new Translation2d(-kHalfLength,  kHalfWidth);
-    public static final Translation2d kBackRight  = new Translation2d(-kHalfLength, -kHalfWidth);
+    public static final Translation2d kFrontLeft = new Translation2d(kHalfLength, kHalfWidth);
+    public static final Translation2d kFrontRight = new Translation2d(kHalfLength, -kHalfWidth);
+    public static final Translation2d kBackLeft = new Translation2d(-kHalfLength, kHalfWidth);
+    public static final Translation2d kBackRight = new Translation2d(-kHalfLength, -kHalfWidth);
 
     // Kraken X60 free speed ≈ 6000 RPM = 100 rotations/sec. Divide by the gear
     // ratio, multiply by circumference → meters/sec. About 4.7 m/s for our numbers.
-    public static final LinearVelocity kMaxSpeed =
-        MetersPerSecond.of(100.0 / kDriveGearRatio * kWheelCircumferenceMeters);
+    public static final LinearVelocity kMaxSpeed = MetersPerSecond
+        .of(100.0 / kDriveGearRatio * kWheelCircumferenceMeters);
 
     // How fast the chassis may spin at full stick — one full rotation per second.
     public static final AngularVelocity kMaxAngularSpeed = RotationsPerSecond.of(1.0);
 
-    public static final double kDriveKV = 0.8;          // volts per wheel rotation/sec — the model
-    public static final double kDriveKP = 0.1;          // volts per rps of error — the trim
+    public static final double kDriveKV = 0.8; // volts per wheel rotation/sec — the model
+    public static final double kDriveKP = 0.1; // volts per rps of error — the trim
 
     // How hard the tires can grip, in sim — a Colson-wheel-on-carpet guess.
     public static final double kWheelCoF = 1.2;
@@ -99,22 +112,114 @@ public final class Constants {
     // The same grip limit, applied at each wheel's distance from center —
     // a wheel spinning the chassis in place still can't push harder than
     // the tire allows.
-    public static final double kMaxAngularAccelRadPerSec2 =
-        kMaxAccelMps2 / Math.hypot(kHalfLength, kHalfWidth);
+    public static final double kMaxAngularAccelRadPerSec2 = kMaxAccelMps2 / Math.hypot(kHalfLength, kHalfWidth);
 
     /** Where the simulated robot is placed on the field at startup. */
     public static final Pose2d kSimStartingPose = new Pose2d(3, 3, new Rotation2d());
   }
 
   public static final class SteerConstants {
-    public static final double kSteerGearRatio = 25.0;  // rotor : CANcoder
-    public static final double kSteerKP = 40.0;         // volts per rotation of error — tune
-    public static final InvertedValue kSteerInverted = InvertedValue.CounterClockwise_Positive; // flip if your steering counts backward
+    public static final double kSteerGearRatio = 25.0; // rotor : CANcoder
+    public static final double kSteerKP = 40.0; // volts per rotation of error — tune
+    public static final InvertedValue kSteerInverted = InvertedValue.CounterClockwise_Positive; // flip if your steering
+                                                                                                // counts backward
   }
 
   public static final class HeadingConstants {
     public static final double kP = 0.02; // turn power per degree of heading error
   }
+
+  public static class ArmConstants {
+    public static final int kPivotMotorPort = 21; // CAN ID — change to yours
+    public static final int kRollerMotorPort = 22; // CAN ID — change to yours
+
+    public static final double kGearRatio = 50.0; // rotor : arm
+    public static final Distance kArmLength = Inches.of(20);
+    public static final Mass kArmMass = Kilograms.of(3.0);
+
+    public static final Angle kMinAngle = Degrees.of(-20);
+    public static final Angle kMaxAngle = Degrees.of(180);
+
+    public static final AngularVelocity kMaxVelocity = DegreesPerSecond.of(180);
+    public static final AngularAcceleration kMaxAcceleration = DegreesPerSecondPerSecond.of(360);
+    public static final double kArmKG = 0.25;
+    public static final double kArmKV = 6.0;
+    public static final double kArmKA = 0.055;
+    public static final double kArmKP = 60.0;
+
+    public static final Angle kIntake = Degrees.of(-20);
+    public static final Angle kStowed = Degrees.of(90);
+
+    public static final Angle kTolerance = Degrees.of(2);
+
+    public static final double kIntakeSpeed = 0.6;
+    public static final double kEjectSpeed = -0.6;
+
+        // The beam break: an infrared beam across the throat of the intake, broken
+    // when a game piece is actually sitting where it belongs.
+    public static final int kBeamBreakChannel = 1; // DIO — change to yours
+    public static final Time kBeamDebounce = Seconds.of(0.1);
+
+    // Sim only: the box in front of the bumper that the roller can reach, and
+    // where the game pieces lie on the field when the simulation starts.
+    public static final Distance kIntakeWidth = Inches.of(24);
+    public static final Distance kIntakeReach = Inches.of(12);
+    public static final Translation2d[] kSimGamePiecePositions = {
+        new Translation2d(4.5, 3.2),
+        new Translation2d(2.0, 1.5),
+        new Translation2d(6.0, 3.8),
+    };
+  }
+
+public static final class ElevatorConstants {
+  public static final int kMotorPort = 20; // CAN ID — change to yours
+  public static final double kGearRatio = 12.0; // motor rotations per drum rotation
+  public static final Distance kDrumRadius = Inches.of(1.0);
+  public static final Mass kCarriageMass = Kilograms.of(5.0); // carriage + anything riding on it
+
+  public static final Distance kMinHeight = Meters.of(0.0);
+  public static final Distance kMaxHeight = Meters.of(1.5);
+
+  public static final LinearVelocity kMaxVelocity = MetersPerSecond.of(1.0);
+  public static final LinearAcceleration kMaxAcceleration = MetersPerSecondPerSecond.of(2.0);
+
+  public static final double kElevatorKG = 0.17; // volts to hold position against gravity
+  public static final double kElevatorKV = 1.42; // volts per drum rotation/sec
+  public static final double kElevatorKA = 0.003; // volts per drum rotation/sec^2
+  public static final double kElevatorKP = 20.0; // volts per drum rotation of error — the trim
+
+  public static final Distance kStowed = Meters.of(0.02);
+  public static final Distance kScoreMid = Meters.of(0.75);
+  public static final Distance kScoreHigh = Meters.of(1.45);
+
+  public static final Distance kTolerance = Centimeters.of(2);
+
+      // The stick-figure view. The canvas is measured in meters, like the field.
+    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayHeight = Meters.of(2.0);
+    public static final Distance kEffectorLength = Centimeters.of(25);
+    public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
+    public static final Color8Bit kAtGoalColor = new Color8Bit(Color.LIME_GREEN);
+
+        // Homing. The switch sits at the bottom of the frame; when it trips, the
+    // carriage is at kBottomLimitHeight whatever the encoder currently believes.
+    public static final int kBottomLimitChannel = 0; // DIO — change to yours
+    public static final Distance kBottomLimitHeight = Centimeters.of(1);
+    public static final Voltage kHomingVolts = Volts.of(-0.7);
+    /** Sim only: where the carriage physically sits at power-on. */
+    public static final Distance kSimStartHeight = Centimeters.of(35);
+}
+
+  /**
+   * ====== NEXT LESSON: ADD CODE HERE ======
+   * Add a VisionConstants class: this season's field layout — where every
+   * AprilTag sits
+   * — loaded once; each camera's name, which must match the name set in that
+   * camera's
+   * web UI, and its mount position as a Transform3d from robot center to lens;
+   * and the
+   * simulated camera's field of view and range.
+   */
 
   public static final class VisionConstants {
     // This season's field: its size, and where every AprilTag sits on it.
@@ -125,12 +230,12 @@ public final class Constants {
     public static final String kFrontCameraName = "limelight-front";
     public static final Transform3d kFrontRobotToCamera = new Transform3d(
         new Translation3d(0.3, 0.0, 0.2), // 30 cm forward, centered, 20 cm up
-        new Rotation3d(0, 0, 0));         // facing straight forward
+        new Rotation3d(0, 0, 0)); // facing straight forward
 
     public static final String kBackCameraName = "limelight-back";
     public static final Transform3d kBackRobotToCamera = new Transform3d(
         new Translation3d(-0.3, 0.0, 0.2), // 30 cm back, 20 cm up
-        new Rotation3d(0, 0, Math.PI));    // facing straight backward
+        new Rotation3d(0, 0, Math.PI)); // facing straight backward
 
     // The simulated camera only. Plausible guesses, not any one camera's spec
     // sheet — check yours before trusting them.
@@ -144,8 +249,8 @@ public final class Constants {
     // error", and since error is meters (or radians) and output is per-second,
     // the units all come out to 1/s.
     public static final double kTranslationP = 5.0; // m/s per meter of path left
-    public static final double kRotationP = 3.0;    // rad/s per radian of heading error
-    public static final double kCrossTrackP = 2.0;  // m/s per meter off the line
+    public static final double kRotationP = 3.0; // rad/s per radian of heading error
+    public static final double kCrossTrackP = 2.0; // m/s per meter off the line
   }
 
   public static final class ElevatorConstants {
@@ -188,7 +293,6 @@ public final class Constants {
      */
     public static final double kDrumCircumferenceMeters =
         2 * Math.PI * kDrumRadius.in(Meters);
-    public static Object kHomingVolts;
   }
     // Physical facts a physics engine needs that pure motor math never did.
   public static final Mass kRobotMass = Kilogram.of(45);          // with battery and bumpers
