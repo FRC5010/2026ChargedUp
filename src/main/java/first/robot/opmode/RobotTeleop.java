@@ -5,43 +5,61 @@
 package first.robot.opmode;
 
 import org.wpilib.command3.Command;
+import org.wpilib.driverstation.XboxController;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 
 import first.robot.Constants.DriveConstants;
+import first.robot.Constants.ElevatorConstants;
 import first.robot.Robot;
+import org.wpilib.command3.Trigger;
 
 @Teleop
 public class RobotTeleop extends PeriodicOpMode {
   private final Robot robot;
-
+   
   /** The Robot instance is passed into the opmode via the constructor. */
   public RobotTeleop(Robot robot) {
     this.robot = robot;
+   // Back homes the elevator: the encoder can't know where the carriage is
+    // at power-on, so drive down to the switch and let it say.
+    robot.driverController.back().onTrue(robot.elevator.home());
+
+    // A Trigger is any boolean the scheduler polls — it does not have to be
+    // a button. Whenever the switch trips, take its word for the height.
+    new Trigger(robot.elevator::atBottomLimit).onTrue(robot.elevator.rezeroAtBottom());
 
     // Classic swerve default: left stick translates (field-relative), right
     // stick rotates.
     robot.drivetrain.setDefaultCommand(
         robot.drivetrain.driveFieldRelative(
-            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftY()),  // forward = +X
-            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftX()),  // left    = +Y
+            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftY()), // forward = +X
+            () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftX()), // left = +Y
             () -> DriveConstants.kMaxAngularSpeed.times(-robot.driverController.getRightX())));
 
-    // Tap the bottom face button to turn and face 90°; the right face button for 0°.
+    // Tap the bottom face button to turn and face 90°; the right face button for
+    // 0°.
+    robot.driverController.faceLeft().onTrue(robot.superstructure.requestIntake());
+    robot.driverController.faceUp().onTrue(robot.superstructure.requestIdle());
+    robot.driverController.rightTrigger().onTrue(robot.superstructure.requestScore());
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
-
+    robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));
+    robot.driverController.dpadRight().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreMid));
+    robot.driverController.dpadUp().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreHigh));
     // Pretend a camera just saw us at (2, 5) facing 90°.
     robot.driverController.start().onTrue(reportFakeSighting(robot));
   }
 
   private static Command reportFakeSighting(Robot robot) {
-    return Command.noRequirements(coroutine ->
-            robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
+    return Command
+        .noRequirements(coroutine -> robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
         .named("Report Fake Sighting");
   }
+
+  
 
   @Override
   public void disabledPeriodic() {
@@ -55,7 +73,17 @@ public class RobotTeleop extends PeriodicOpMode {
 
   @Override
   public void periodic() {
-    /* Called periodically (set time interval) while the robot is enabled. */
+    /* Called periodically (set time interval) while the robot is enabled.
+    if (XboxController.getRightBumperButton()) {
+      robot.feeder.setThrottle(0.75);
+    } else if (XboxController.getLeftBumperButton()) {
+      robot.feeder.setThrottle(-1.0);
+    } else if (XboxController.getAButton()) {
+      robot.feeder.setThrottle(1.0);
+    } else {
+      robot.feeder.setThrottle(0.0);
+    }
+    */
   }
 
   @Override
@@ -65,6 +93,8 @@ public class RobotTeleop extends PeriodicOpMode {
 
   @Override
   public void close() {
-    /* Called when the opmode is de-selected / no additional methods will be called. */
+    /*
+     * Called when the opmode is de-selected / no additional methods will be called.
+     */
   }
 }

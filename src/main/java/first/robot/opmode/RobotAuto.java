@@ -13,7 +13,7 @@ import first.robot.commands.Autos;
 
 @Autonomous(name = "Drive Turn Drive", group = "Group 1")
 public class RobotAuto extends PeriodicOpMode {
-  private final Robot robot;
+  private Robot robot;
 
   /** The Robot instance is passed into the opmode via the constructor. */
   public RobotAuto(Robot robot) {

@@ -9,6 +9,7 @@ import org.wpilib.command3.Scheduler;
 import org.wpilib.command3.SchedulerEvent;
 import org.wpilib.command3.button.CommandGamepad;
 import org.wpilib.system.DataLogManager;
+import org.wpilib.telemetry.Telemetry;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedOpModeRobot;
@@ -18,14 +19,21 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import first.robot.subsystems.Drivetrain;
+import first.robot.subsystems.Elevator;
 import first.robot.subsystems.Localizer;
+import first.robot.subsystems.Superstructure;
 import first.robot.subsystems.VisionPoseProvider;
+import first.robot.subsystems.mechanisms.Arm.Arm;
 
 /**
- * The methods in this class are called automatically as described in the OpModeRobot documentation.
- * OpMode classes anywhere in the package (or sub-packages) where this class is located are
- * automatically registered to display in the Driver Station. If you change the name of this class
- * or the package after creating this project, you must also update the Main.java file in the
+ * The methods in this class are called automatically as described in the
+ * OpModeRobot documentation.
+ * OpMode classes anywhere in the package (or sub-packages) where this class is
+ * located are
+ * automatically registered to display in the Driver Station. If you change the
+ * name of this class
+ * or the package after creating this project, you must also update the
+ * Main.java file in the
  * project.
  */
 public class Robot extends LoggedOpModeRobot {
@@ -44,19 +52,30 @@ public class Robot extends LoggedOpModeRobot {
   // Localizer reads the drivetrain's kinematics/rotation/module positions at
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
+  public final Elevator elevator = new Elevator();
+  public final Arm arm = new Arm(elevator, localizer::getPose);
+  public final Superstructure superstructure = new Superstructure(elevator, arm);
 
   /**
    * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-   * Replace the fake camera with two real Limelight pose providers, front and back.
+   * Replace the fake camera with two real Limelight pose providers, front and
+   * back.
    * Make them blank finals — declared here, assigned in the constructor — because
-   * building a camera needs the localizer's pose, and the constructor body runs after
+   * building a camera needs the localizer's pose, and the constructor body runs
+   * after
    * every field above is finished.
    */
 
   public final VisionPoseProvider camera = new VisionPoseProvider();
 
+    // Arm reads elevator.getCarriage() in its constructor, so elevator must be
+  // a finished object first — it already is, above. In simulation its intake
+  // also needs to know where the robot really is, which only drivetrain knows.
+
+
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
   public Robot() {
@@ -64,8 +83,10 @@ public class Robot extends LoggedOpModeRobot {
 
     /**
      * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-     * Build both cameras with LimelightPoseProvider.makeCamera — each one's name, mount
-     * position and the localizer's pose getter — then register each with the localizer.
+     * Build both cameras with LimelightPoseProvider.makeCamera — each one's name,
+     * mount
+     * position and the localizer's pose getter — then register each with the
+     * localizer.
      */
 
     localizer.addProvider(camera); // the second provider — vision
@@ -92,9 +113,13 @@ public class Robot extends LoggedOpModeRobot {
 
   /** This function is called exactly once when the DS first connects. */
   @Override
-  public void driverStationConnected() {}
+  public void driverStationConnected() {
+  }
 
-  /** Runs every tick, no matter which opmode is selected or whether the robot is enabled. */
+  /**
+   * Runs every tick, no matter which opmode is selected or whether the robot is
+   * enabled.
+   */
   @Override
   public void robotPeriodic() {
     Scheduler.getDefault().run();
@@ -110,12 +135,15 @@ public class Robot extends LoggedOpModeRobot {
 
   /** Runs every tick, but only while the code is running in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 
   /**
-   * This function is called periodically anytime when no opmode is selected, including when the
+   * This function is called periodically anytime when no opmode is selected,
+   * including when the
    * Driver Station is disconnected.
    */
   @Override
-  public void nonePeriodic() {}
+  public void nonePeriodic() {
+  }
 }
