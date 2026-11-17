@@ -9,7 +9,4 @@ public interface GyroIO {
   }
 
   public default void updateInputs(GyroIOInputs inputs) {}
-
-  /** Sim bookkeeping: the commanded rotation rate, in revolutions per second. */
-  public default void setSimRotationRate(double omegaRevPerSec) {}
 }

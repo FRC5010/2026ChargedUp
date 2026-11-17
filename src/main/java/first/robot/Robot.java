@@ -8,6 +8,7 @@ import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.command3.SchedulerEvent;
 import org.wpilib.command3.button.CommandGamepad;
+import org.wpilib.driverstation.RobotState;
 import org.wpilib.system.DataLogManager;
 
 import org.littletonrobotics.junction.LogFileUtil;
@@ -17,9 +18,18 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import first.robot.Constants.DriveConstants;
+import first.robot.Constants.VisionConstants;
+import first.robot.commands.Autos;
+import first.robot.subsystems.Arm;
 import first.robot.subsystems.Drivetrain;
+import first.robot.subsystems.Elevator;
+import first.robot.subsystems.Leds;
+import first.robot.subsystems.LimelightPoseProvider;
 import first.robot.subsystems.Localizer;
-import first.robot.subsystems.VisionPoseProvider;
+import first.robot.subsystems.Superstructure;
+import first.robot.subsystems.SuperstructureState;
+import frc.robot.lib.BLine.commands.FollowPath;
 
 /**
  * The methods in this class are called automatically as described in the OpModeRobot documentation.
@@ -44,16 +54,24 @@ public class Robot extends LoggedOpModeRobot {
   // Localizer reads the drivetrain's kinematics/rotation/module positions at
   // construction, so drivetrain must be built first — it already is, above.
   public final Localizer localizer = new Localizer(drivetrain);
+  // Blank finals: each camera is built and registered with localizer in the
+  // constructor body, below, which runs after every field initializer above.
+  public final LimelightPoseProvider frontCamera;
+  public final LimelightPoseProvider backCamera;
 
-  /**
-   * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-   * Replace the fake camera with two real Limelight pose providers, front and back.
-   * Make them blank finals — declared here, assigned in the constructor — because
-   * building a camera needs the localizer's pose, and the constructor body runs after
-   * every field above is finished.
-   */
+  // How this robot follows a path. It's the same for every path, so it's
+  // built once, here, and every autonomous opmode reaches in and uses it.
+  public final FollowPath.Builder pathBuilder = Autos.makePathBuilder(drivetrain, localizer);
 
-  public final VisionPoseProvider camera = new VisionPoseProvider();
+  public final Elevator elevator = new Elevator();
+  // Arm reads elevator.getCarriage() in its constructor, so elevator must be
+  // a finished object first — it already is, above. In simulation its intake
+  // also needs to know where the robot really is, which only drivetrain knows.
+  public final Arm arm = new Arm(elevator, drivetrain::getSimulatedPose);
+  // Superstructure reads both, so elevator and arm must be finished objects
+  // first — they already are, above.
+  public final Superstructure superstructure = new Superstructure(elevator, arm);
+  public final Leds leds = new Leds(superstructure::getState); // reads it; drives nothing
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -61,14 +79,65 @@ public class Robot extends LoggedOpModeRobot {
    */
   public Robot() {
     Scheduler.getDefault().addEventListener(this::logCommandStart);
-
     /**
      * ====== NEXT LESSON: CHANGE THE CODE BELOW ======
-     * Build both cameras with LimelightPoseProvider.makeCamera — each one's name, mount
-     * position and the localizer's pose getter — then register each with the localizer.
+     * The path markers ask the superstructure for things and read the pose
+     * now, so registering them needs the superstructure and the localizer.
      */
+    Autos.registerEventTriggers(); // once, for the whole program
 
-    localizer.addProvider(camera); // the second provider — vision
+    // Motion that belongs to a state, bound to being in it. No guard here:
+    // being in the state at all means the state machine already said yes. The
+    // moment the state changes, whileTrue cancels the old motion. HOLDING has
+    // none — the elevator and arm are already where they need to be. These are
+    // made here, not in an opmode, so they hold in every opmode there is.
+    //
+    // "And enabled" keeps the motion alive across a disable. Disabling cancels
+    // every command that moves a mechanism, and a state that didn't change
+    // gives whileTrue no new edge to start from. This way, enabling the robot
+    // is that edge.
+    superstructure.inState(SuperstructureState.INTAKING)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.intakeMotion());
+    superstructure.inState(SuperstructureState.HANDOFF)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.handoffMotion());
+    superstructure.inState(SuperstructureState.SCORING)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.scoreMotion());
+    superstructure.inState(SuperstructureState.IDLE)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.idleMotion());
+
+    // Vision now checks its simulated eyesight against ground truth, not
+    // against its own guess — the fix Lesson 15 admitted it was missing.
+    frontCamera = LimelightPoseProvider.makeCamera(
+        VisionConstants.kFrontCameraName, VisionConstants.kFrontRobotToCamera, drivetrain::getSimulatedPose);
+    backCamera = LimelightPoseProvider.makeCamera(
+        VisionConstants.kBackCameraName, VisionConstants.kBackRobotToCamera, drivetrain::getSimulatedPose);
+    localizer.addProvider(frontCamera);
+    localizer.addProvider(backCamera);
+
+    // Where was the robot set down at power-on? The simulator knows, because
+    // it put the chassis at kSimStartingPose; a real robot doesn't. Recorded
+    // like any reading, so a replay starts the estimate wherever the run did.
+    StartingPlacementAutoLogged placement = new StartingPlacementAutoLogged();
+    if (Constants.kCurrentMode == Constants.Mode.SIM) {
+      placement.known = true;
+      placement.pose = DriveConstants.kSimStartingPose;
+    }
+    Logger.processInputs("StartingPlacement", placement);
+    if (placement.known) {
+      localizer.resetPose(placement.pose); // instead of guessing (0, 0, 0°)
+    }
+
+    /**
+     * ====== NEXT LESSON: ADD CODE HERE ======
+     * The path autos, one line each: every one is the same opmode with a
+     * different path and a different plan for the drive, so they're registered
+     * here instead of each getting a class (the two path opmode classes are
+     * deleted). Then the opmode list is sent to the Driver Station again.
+     */
   }
 
   /** Tells AdvantageKit where readings come from and where results go, then starts it. */

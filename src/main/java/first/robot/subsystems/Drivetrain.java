@@ -48,15 +48,28 @@ public class Drivetrain implements Mechanism, PoseProvider {
       m_modules[2].location,
       m_modules[3].location);
 
+  // The chassis's ground truth in the physics world — one, shared, null on
+  // a real robot (which already has a world) and in replay (which needs none).
+  private static final ChassisSimulation m_chassisSim = createChassisSim();
+
   private final GyroIO m_gyroIO = switch (Constants.kCurrentMode) {
     case REAL -> new GyroIOPigeon2();
-    case SIM -> new GyroIOSim();
+    case SIM -> new GyroIOSim(m_chassisSim);
     case REPLAY -> new GyroIO() {}; // inputs come from the log
   };
   private final GyroIOInputsAutoLogged m_gyroInputs = new GyroIOInputsAutoLogged();
 
   public Drivetrain() {
     Scheduler.getDefault().addPeriodic(this::periodic);
+    Scheduler.getDefault().addPeriodic(this::simulateChassis);
+  }
+
+  /** Builds the shared chassis ground truth. Sim only — null everywhere else. */
+  private static ChassisSimulation createChassisSim() {
+    if (Constants.kCurrentMode != Constants.Mode.SIM) {
+      return null; // a real robot already has a world; replay doesn't need one
+    }
+    return new ChassisSimulation(DriveConstants.kSimStartingPose);
   }
 
   /** Builds the right ModuleIO for the current mode, then wraps it in a SwerveModule. */
@@ -79,8 +92,6 @@ public class Drivetrain implements Mechanism, PoseProvider {
     // down proportionally so the *shape* of the motion is preserved.
     // desaturateWheelVelocities takes a LinearVelocity directly — pass kMaxSpeed as-is.
     states = SwerveDriveKinematics.desaturateWheelVelocities(states, DriveConstants.kMaxSpeed);
-
-    m_gyroIO.setSimRotationRate(speeds.omega / (2 * Math.PI)); // rev/s for sim
 
     for (int i = 0; i < m_modules.length; i++) {
       states[i] = states[i].optimize(Rotation2d.fromDegrees(m_modules[i].getSteerAngleDegrees()));
@@ -131,7 +142,6 @@ public class Drivetrain implements Mechanism, PoseProvider {
               module.setDesiredState(
                   new SwerveModuleVelocity(DriveConstants.kMaxSpeed.times(0.4), Rotation2d.fromDegrees(0)));
             }
-            m_gyroIO.setSimRotationRate(0.0);
             coroutine.yield();
           }
         })
@@ -207,10 +217,52 @@ public class Drivetrain implements Mechanism, PoseProvider {
     return positions;
   }
 
+  /**
+   * How the chassis is moving right now, robot-relative — kinematics run
+   * backward: four measured wheel velocities in, one chassis motion out.
+   */
+  public ChassisVelocities getChassisVelocities() {
+    SwerveModuleVelocity[] wheels = new SwerveModuleVelocity[m_modules.length];
+    for (int i = 0; i < m_modules.length; i++) {
+      wheels[i] = new SwerveModuleVelocity(
+          m_modules[i].getDriveVelocityMetersPerSec(),
+          Rotation2d.fromDegrees(m_modules[i].getSteerAngleDegrees()));
+    }
+    return m_kinematics.toChassisVelocities(wheels);
+  }
+
+  /** Drive one tick from a robot-relative chassis motion. The door BLine drives through. */
+  public void driveRobotRelative(ChassisVelocities speeds) {
+    applyChassisSpeeds(speeds);
+  }
+
   /** As a PoseProvider, the drivetrain contributes wheel-and-gyro odometry. */
   @Override
   public void updatePoseEstimate(SwerveDrivePoseEstimator estimator) {
     estimator.update(getRotation(), getModulePositions());
+  }
+
+  /** Moves the simulated chassis the way its wheels actually turned this tick. Sim only. */
+  private void simulateChassis() {
+    if (m_chassisSim == null) {
+      return; // a real robot moves itself
+    }
+    m_chassisSim.update(getChassisVelocities(), 0.020);
+  }
+
+  /** Where the chassis really is, ground truth — null outside sim. */
+  public Pose2d getSimulatedPose() {
+    return m_chassisSim != null ? m_chassisSim.getPose() : null;
+  }
+
+  /**
+   * Sim only: set the simulated chassis down at 'pose', the job a person does
+   * before a real match. Does nothing on a real robot.
+   */
+  public void placeSimulatedRobot(Pose2d pose) {
+    if (m_chassisSim != null) {
+      m_chassisSim.placeAt(pose);
+    }
   }
 
   private void periodic() {
@@ -230,5 +282,9 @@ public class Drivetrain implements Mechanism, PoseProvider {
 
     Logger.recordOutput("Drivetrain/HeadingDegrees", getHeadingDegrees());
     Logger.recordOutput("Drivetrain/Heading", Rotation2d.fromDegrees(getHeadingDegrees()));
+
+    if (m_chassisSim != null) {
+      Logger.recordOutput("Drivetrain/SimulatedPose", m_chassisSim.getPose());
+    }
   }
 }

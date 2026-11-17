@@ -4,13 +4,12 @@
 
 package first.robot.opmode;
 
-import org.wpilib.command3.Command;
-import org.wpilib.math.geometry.Pose2d;
-import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.command3.Trigger;
 import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 
 import first.robot.Constants.DriveConstants;
+import first.robot.Constants.ElevatorConstants;
 import first.robot.Robot;
 
 @Teleop
@@ -33,14 +32,26 @@ public class RobotTeleop extends PeriodicOpMode {
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
 
-    // Pretend a camera just saw us at (2, 5) facing 90°.
-    robot.driverController.start().onTrue(reportFakeSighting(robot));
-  }
+    // D-pad: send the elevator to one of its three preset heights.
+    robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));
+    robot.driverController.dpadRight().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreMid));
+    robot.driverController.dpadUp().onTrue(robot.elevator.goToHeight(ElevatorConstants.kScoreHigh));
 
-  private static Command reportFakeSighting(Robot robot) {
-    return Command.noRequirements(coroutine ->
-            robot.camera.reportSighting(new Pose2d(2.0, 5.0, Rotation2d.fromDegrees(90))))
-        .named("Report Fake Sighting");
+    // Back homes the elevator: the encoder can't know where the carriage is
+    // at power-on, so drive down to the switch and let it say.
+    robot.driverController.back().onTrue(robot.elevator.home());
+
+    // A Trigger is any boolean the scheduler polls — it does not have to be
+    // a button. Whenever the switch trips, take its word for the height.
+    new Trigger(robot.elevator::atBottomLimit).onTrue(robot.elevator.rezeroAtBottom());
+
+    // Face buttons ask the superstructure for a state: left to intake, top to
+    // give up and go back to neutral, right trigger to score. They don't check
+    // whether it makes sense — that's the state machine's job, and it refuses
+    // out loud.
+    robot.driverController.faceLeft().onTrue(robot.superstructure.requestIntake());
+    robot.driverController.faceUp().onTrue(robot.superstructure.requestIdle());
+    robot.driverController.rightTrigger().onTrue(robot.superstructure.requestScore());
   }
 
   @Override
