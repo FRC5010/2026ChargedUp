@@ -6,6 +6,8 @@ import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
 
+import org.littletonrobotics.junction.Logger;
+
 /**
  * One swerve corner. No hardware of its own anymore — it owns an IO (whichever
  * kind), the inputs that IO reports, its targets, and the cosine decision.
