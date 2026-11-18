@@ -11,13 +11,13 @@ public class SuperstructureData {
     public static final SuperstructureData kUnhomed = 
     new SuperstructureData(Degrees.of(0), Degrees.of(0), Meters.of(0));
     public static final SuperstructureData kIdle = 
-    new SuperstructureData(Degrees.of(1), Degrees.of(1), Meters.of(0));
+    new SuperstructureData(Degrees.of(90), Degrees.of(90), Meters.of(0));
     public static final SuperstructureData kGroundConeIntaking = 
-    new SuperstructureData(Degrees.of(1), Degrees.of(10), Meters.of(1));
+    new SuperstructureData(Degrees.of(90), Degrees.of(45), Meters.of(1.2));
     public static final SuperstructureData kHoldingCone = 
-    new SuperstructureData(Degrees.of(1), Degrees.of(45), Meters.of(1));
+    new SuperstructureData(Degrees.of(1), Degrees.of(45), Meters.of(1.2));
     public static final SuperstructureData kConeScoreLow = 
-    new SuperstructureData(Degrees.of(1), Degrees.of(10), Meters.of(0.5));
+    new SuperstructureData(Degrees.of(1), Degrees.of(45), Meters.of(0.5));
 
     //define parameters
     private final Angle wristAngle;

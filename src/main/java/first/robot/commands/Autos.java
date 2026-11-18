@@ -42,7 +42,7 @@ public final class Autos {
   }
 
   
-  private static void registerEventTriggers() {
+  public static void registerEventTriggers() {
     
     FollowPath.registerEventTrigger(
         "shoot",
