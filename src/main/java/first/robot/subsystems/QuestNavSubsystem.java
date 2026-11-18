@@ -25,7 +25,7 @@ import org.wpilib.fields.Field;
 import org.wpilib.fields.Fields;
 
 public class QuestNavSubsystem implements QuestNavIO, PoseProvider {
-    private QuestNav questNav;
+    private QuestNav questNav = new QuestNav();
     private QuestNavIOInputsAutoLogged questNavInputs = new QuestNavIOInputsAutoLogged();
 
     private static final Field FIELD_LAYOUT = new Field().loadField(
@@ -55,7 +55,7 @@ public class QuestNavSubsystem implements QuestNavIO, PoseProvider {
         questNav.onTrackingAcquired(() -> System.out.println("Quest is Tracking!!!"));
         questNav.onTrackingLost(() -> System.out.println("Quest is Lost!!!"));
 
-        Scheduler.getDefault().addPeriodic(this::periodic);
+        
     }
 
     Transform3d RobotToQuest = new Transform3d(
@@ -63,13 +63,15 @@ public class QuestNavSubsystem implements QuestNavIO, PoseProvider {
             new Rotation3d(0.0, 0.0, 0.0) // Rotation from robot to QuestNav
     );
 
-    PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
+    
 
     static Pose3d robotPose = new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, 0.0, 0.0));
 
     Pose3d questPose = robotPose.transformBy(RobotToQuest);
 
     boolean poseInit = false;
+
+    PoseFrame[] poseFrames = questNav.getAllUnreadPoseFrames();
 
     public void updatePose() {
         poseFrames = questNav.getAllUnreadPoseFrames();
@@ -105,9 +107,9 @@ public class QuestNavSubsystem implements QuestNavIO, PoseProvider {
     }
     @Override
     public void updatePoseEstimate(SwerveDrivePoseEstimator estimator){
+        periodic();
         for(int i = 0; i < questNavInputs.poseObservations.length; i++){
         estimator.addVisionMeasurement(questNavInputs.poseObservations[i].toPose2d(), questNavInputs.latency[i], QUESTNAV_STD_DEV);
-
         }
     }
 
