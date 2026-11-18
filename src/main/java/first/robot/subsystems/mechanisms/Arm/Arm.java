@@ -11,6 +11,7 @@ import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.units.measure.Angle;
+import org.wpilib.util.Color8Bit;
 
 import first.robot.Constants;
 import first.robot.Constants.ArmConstants;
@@ -53,8 +54,7 @@ public class Arm implements Mechanism {
     Logger.recordOutput("Arm/AtGoal", atGoal());
 
     m_ligament.setAngle(toDrawingAngle(Degrees.of(m_inputs.angleDegrees)));
-     m_ligament.setColor(null);
-    //     atGoal() ? ElevatorConstants.kAtGoalColor : ElevatorConstants.kMovingColor);
+     m_ligament.setColor(atGoal() ? ElevatorConstants.kAtGoalColor : ElevatorConstants.kMovingColor);
   }
 
   /** Swing the arm to an angle, clamped to safe travel. Keeps holding once it arrives. */

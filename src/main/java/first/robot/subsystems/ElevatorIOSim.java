@@ -11,7 +11,10 @@ import org.wpilib.system.RobotController;
 
 import first.robot.Constants.ElevatorConstants;
 
-/** Sim: the real TalonFX class, plus WPILib's ElevatorSim physics model underneath it. */
+/**
+ * Sim: the real TalonFX class, plus WPILib's ElevatorSim physics model
+ * underneath it.
+ */
 public class ElevatorIOSim extends ElevatorIOTalonFX {
   private final TalonFXSimState m_sim;
   private final ElevatorSim m_elevatorModel = new ElevatorSim(
@@ -33,6 +36,10 @@ public class ElevatorIOSim extends ElevatorIOTalonFX {
   public void updateInputs(ElevatorIOInputs inputs) {
     stepSim(); // advance the physics one tick...
     super.updateInputs(inputs); // ...then read the sensor like the real class
+    // The switch is bolted to the frame. It trips on where the carriage
+    // actually is — not on where the encoder thinks it is.
+    inputs.atBottomLimit = m_elevatorModel.getPosition() <= ElevatorConstants.kBottomLimitHeight.in(Meters);
+
   }
 
   /** One tick of pretend reality. */
@@ -40,15 +47,15 @@ public class ElevatorIOSim extends ElevatorIOTalonFX {
     m_sim.setSupplyVoltage(RobotController.getBatteryVoltage());
     m_elevatorModel.setInputVoltage(m_sim.getMotorVoltage());
     m_elevatorModel.update(0.020);
-
-    double positionMeters = m_elevatorModel.getPosition();
+    
     double velocityMetersPerSecond = m_elevatorModel.getVelocity();
 
     // ElevatorSim reports carriage height in meters, while the motor sim state
     // speaks in rotor rotations. A relative encoder can only report movement
     // since power-on, so subtract the starting height before writing back.
     m_sim.setRawRotorPosition(
-        metersToRotations(positionMeters) * ElevatorConstants.kGearRatio);
+        metersToRotations(m_elevatorModel.getPosition() - ElevatorConstants.kSimStartHeight.in(Meters))
+            * ElevatorConstants.kGearRatio);
     m_sim.setRotorVelocity(
         metersToRotations(velocityMetersPerSecond) * ElevatorConstants.kGearRatio);
   }
