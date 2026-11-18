@@ -11,6 +11,7 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.opmode.PeriodicOpMode;
 import org.wpilib.opmode.Teleop;
 
+import first.robot.Constants.ArmConstants;
 import first.robot.Constants.DriveConstants;
 import first.robot.Constants.ElevatorConstants;
 import first.robot.Robot;
@@ -19,11 +20,11 @@ import org.wpilib.command3.Trigger;
 @Teleop
 public class RobotTeleop extends PeriodicOpMode {
   private final Robot robot;
-   
+
   /** The Robot instance is passed into the opmode via the constructor. */
   public RobotTeleop(Robot robot) {
     this.robot = robot;
-   // Back homes the elevator: the encoder can't know where the carriage is
+    // Back homes the elevator: the encoder can't know where the carriage is
     // at power-on, so drive down to the switch and let it say.
     robot.driverController.back().onTrue(robot.elevator.home());
 
@@ -39,11 +40,16 @@ public class RobotTeleop extends PeriodicOpMode {
             () -> DriveConstants.kMaxSpeed.times(-robot.driverController.getLeftX()), // left = +Y
             () -> DriveConstants.kMaxAngularSpeed.times(-robot.driverController.getRightX())));
 
-    // Tap the bottom face button to turn and face 90°; the right face button for
-    // 0°.
+    // Face buttons ask the superstructure for a state: left to intake, top to
+    // give up and go back to neutral, right trigger to score. They don't check
+    // whether it makes sense — that's the state machine's job, and it refuses
+    // out loud.
     robot.driverController.faceLeft().onTrue(robot.superstructure.requestIntake());
     robot.driverController.faceUp().onTrue(robot.superstructure.requestIdle());
     robot.driverController.rightTrigger().onTrue(robot.superstructure.requestScore());
+
+    // Tap the bottom face button to turn and face 90°; the right face button for
+    // 0°.
     robot.driverController.faceDown().onTrue(robot.drivetrain.turnToHeading(90));
     robot.driverController.faceRight().onTrue(robot.drivetrain.turnToHeading(0));
     robot.driverController.dpadDown().onTrue(robot.elevator.goToHeight(ElevatorConstants.kStowed));
@@ -59,8 +65,6 @@ public class RobotTeleop extends PeriodicOpMode {
         .named("Report Fake Sighting");
   }
 
-  
-
   @Override
   public void disabledPeriodic() {
     /* Called periodically (on every DS packet) while the robot is disabled. */
@@ -73,17 +77,18 @@ public class RobotTeleop extends PeriodicOpMode {
 
   @Override
   public void periodic() {
-    /* Called periodically (set time interval) while the robot is enabled.
-    if (XboxController.getRightBumperButton()) {
-      robot.feeder.setThrottle(0.75);
-    } else if (XboxController.getLeftBumperButton()) {
-      robot.feeder.setThrottle(-1.0);
-    } else if (XboxController.getAButton()) {
-      robot.feeder.setThrottle(1.0);
-    } else {
-      robot.feeder.setThrottle(0.0);
-    }
-    */
+    /*
+     * Called periodically (set time interval) while the robot is enabled.
+     * if (XboxController.getRightBumperButton()) {
+     * robot.feeder.setThrottle(0.75);
+     * } else if (XboxController.getLeftBumperButton()) {
+     * robot.feeder.setThrottle(-1.0);
+     * } else if (XboxController.getAButton()) {
+     * robot.feeder.setThrottle(1.0);
+     * } else {
+     * robot.feeder.setThrottle(0.0);
+     * }
+     */
   }
 
   @Override

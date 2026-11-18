@@ -8,6 +8,7 @@ import org.wpilib.command3.Mechanism;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.command3.SchedulerEvent;
 import org.wpilib.command3.button.CommandGamepad;
+import org.wpilib.driverstation.RobotState;
 import org.wpilib.system.DataLogManager;
 import org.wpilib.telemetry.Telemetry;
 
@@ -18,12 +19,19 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import first.robot.commands.Autos;
 import first.robot.subsystems.Drivetrain;
 import first.robot.subsystems.Elevator;
 import first.robot.subsystems.Localizer;
 import first.robot.subsystems.Superstructure;
+import first.robot.subsystems.SuperstructureState;
 import first.robot.subsystems.VisionPoseProvider;
 import first.robot.subsystems.mechanisms.Arm.Arm;
+import org.wpilib.driverstation.RobotState;
+
+import first.robot.subsystems.Superstructure;
+import first.robot.subsystems.SuperstructureState;
+
 
 /**
  * The methods in this class are called automatically as described in the
@@ -88,6 +96,27 @@ public class Robot extends LoggedOpModeRobot {
      * position and the localizer's pose getter — then register each with the
      * localizer.
      */
+    Autos.registerEventTriggers(); // once, for the whole program
+
+    // Motion that belongs to a state, bound to being in it. No guard here:
+    // being in the state at all means the state machine already said yes. The
+    // moment the state changes, whileTrue cancels the old motion. HOLDING has
+    // none — the elevator and arm are already where they need to be. These are
+    // made here, not in an opmode, so they hold in every opmode there is.
+    //
+    // "And enabled" keeps the motion alive across a disable. Disabling cancels
+    // every command that moves a mechanism, and a state that didn't change
+    // gives whileTrue no new edge to start from. This way, enabling the robot
+    // is that edge.
+    superstructure.inState(SuperstructureState.GROUNDCONEINTAKING)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.intakeMotion());
+    superstructure.inState(SuperstructureState.CONESCORELOW)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.scoreMotion());
+    superstructure.inState(SuperstructureState.IDLE)
+        .and(RobotState::isEnabled)
+        .whileTrue(superstructure.idleMotion());
 
     localizer.addProvider(camera); // the second provider — vision
   }
