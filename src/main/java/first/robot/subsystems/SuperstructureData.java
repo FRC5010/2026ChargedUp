@@ -13,7 +13,7 @@ public class SuperstructureData {
     public static final SuperstructureData kIdle = 
     new SuperstructureData(Degrees.of(90), Degrees.of(90), Meters.of(0));
     public static final SuperstructureData kGroundConeIntaking = 
-    new SuperstructureData(Degrees.of(90), Degrees.of(45), Meters.of(1.2));
+    new SuperstructureData(Degrees.of(-45), Degrees.of(20), Meters.of(1.2));
     public static final SuperstructureData kHoldingCone = 
     new SuperstructureData(Degrees.of(1), Degrees.of(45), Meters.of(1.2));
     public static final SuperstructureData kConeScoreLow = 
@@ -35,5 +35,17 @@ public class SuperstructureData {
         this.wristAngle = _wristAngle;
         this.armAngle = _armAngle;
         this.armDistance = _armDistance;
+    }
+
+    public Angle armAngle() {
+        return armAngle;
+    }
+
+    public Distance armDistance() {
+        return armDistance;
+    }
+
+    public Angle wristAngle() {
+        return wristAngle;
     }
 }

@@ -99,7 +99,7 @@ public class Superstructure {
   /** Both steps require Arm — the same Mechanism — so this has to be a sequence, not a parallel. */
   public Command intakeMotion() {
     return Command.sequence(
-            m_arm.goToAngle(ArmConstants.kIntake),
+            m_arm.goToAngle(SuperstructureState.GROUNDCONEINTAKING.armAngle()),
             m_arm.runRoller(ArmConstants.kIntakeSpeed))
         .named("Intake Motion");
   }
@@ -110,8 +110,8 @@ public class Superstructure {
    */
   public Command handoffMotion() {
     return Command.parallel(
-            m_arm.goToAngle(ArmConstants.kStowed),
-            m_elevator.goToHeight(ElevatorConstants.kScoreMid))
+            m_arm.goToAngle(SuperstructureState.GROUNDCONEINTAKING.armAngle()),
+            m_elevator.goToHeight(SuperstructureState.GROUNDCONEINTAKING.armDistance()))
         .named("Handoff Motion");
   }
 
@@ -123,8 +123,8 @@ public class Superstructure {
   /** Back to neutral: arm stowed, elevator down. */
   public Command idleMotion() {
     return Command.parallel(
-            m_arm.goToAngle(ArmConstants.kStowed),
-            m_elevator.goToHeight(ElevatorConstants.kStowed))
+            m_arm.goToAngle(SuperstructureState.IDLE.armAngle()),
+            m_elevator.goToHeight(SuperstructureState.IDLE.armDistance()))
         .named("Idle Motion");
   }
 

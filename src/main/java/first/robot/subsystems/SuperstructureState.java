@@ -1,5 +1,8 @@
 package first.robot.subsystems;
 
+import org.wpilib.units.measure.Angle;
+import org.wpilib.units.measure.Distance;
+
 public enum SuperstructureState {
     UNHOMED(SuperstructureData.kUnhomed),
     IDLE(SuperstructureData.kIdle),
@@ -33,6 +36,18 @@ public enum SuperstructureState {
             case HOLDINGCONE -> next == CONESCORELOW || next == IDLE;
             case CONESCORELOW -> next == IDLE;
         };
+    }
+
+        public Angle armAngle() {
+        return m_SuperstructureData.armAngle();
+    }
+
+    public Distance armDistance() {
+        return m_SuperstructureData.armDistance();
+    }
+
+    public Angle wristAngle() {
+        return m_SuperstructureData.wristAngle();
     }
 }
 

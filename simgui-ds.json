@@ -1,5 +1,4 @@
 {
-  "Keyboard 0 Settings": {"window": {"visible": true}},
   "keyboardJoysticks": [{
     "axisConfig": [{
       "decKey": 546,
@@ -14,8 +13,8 @@
       "keyRate": 0.01
     }],
     "axisCount": 3,
-    "buttonCount": 10,
-    "buttonKeys": [571, 569, 548, 567, 547, 559, 558, 597, 599, 600],
+    "buttonCount": 15,
+    "buttonKeys": [571, 569, 548, 567, 547, 559, 558, 597, 599, 600, 554, 556, 555, 557, -1],
     "povConfig": [{
       "keyDown": 614,
       "keyDownLeft": 613,
@@ -28,13 +27,6 @@
     }],
     "povCount": 1
   }, {
-    "axisConfig": [{
-      "decKey": 555,
-      "incKey": 557
-    }, {
-      "decKey": 554,
-      "incKey": 556
-    }],
     "axisCount": 2,
     "buttonCount": 4,
     "buttonKeys": [-1, -1, -1, -1],

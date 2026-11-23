@@ -27,7 +27,10 @@ public class Arm implements Mechanism {
   private final ArmIO m_io;
   private final ArmIOInputsAutoLogged m_inputs = new ArmIOInputsAutoLogged();
   private Angle m_goal = ArmConstants.kStowed;
-    /** Is a game piece actually sitting in the intake? The roller can't tell you. */
+
+  /**
+   * Is a game piece actually sitting in the intake? The roller can't tell you.
+   */
   public boolean hasGamePiece() {
     return m_inputs.hasGamePiece;
   }
@@ -41,12 +44,15 @@ public class Arm implements Mechanism {
     case SIM -> new ArmIOSim(simulateRobotPose);
     case REPLAY -> new ArmIO() {}; // inputs come from the log
   };
-    m_ligament = elevator.getCarriage().append(new LoggedMechanismLigament2d(
-        "Arm", ArmConstants.kArmLength, toDrawingAngle(ArmConstants.kMinAngle)));
+    m_ligament = elevator.getCarriage();
+    m_ligament.setAngle(toDrawingAngle(ArmConstants.kMinAngle));
     Scheduler.getDefault().addPeriodic(this::periodic);
   }
 
-  /** One tick of sensing: read the hardware into the bundle, log it, and move the drawing. */
+  /**
+   * One tick of sensing: read the hardware into the bundle, log it, and move the
+   * drawing.
+   */
   private void periodic() {
     m_io.updateInputs(m_inputs);
     Logger.processInputs("Arm", m_inputs); // every reading, under Arm/
@@ -54,20 +60,25 @@ public class Arm implements Mechanism {
     Logger.recordOutput("Arm/AtGoal", atGoal());
 
     m_ligament.setAngle(toDrawingAngle(Degrees.of(m_inputs.angleDegrees)));
-     m_ligament.setColor(atGoal() ? ElevatorConstants.kAtGoalColor : ElevatorConstants.kMovingColor);
+    m_ligament.setColor(atGoal() ? ElevatorConstants.kAtGoalColor : ElevatorConstants.kMovingColor);
   }
 
-  /** Swing the arm to an angle, clamped to safe travel. Keeps holding once it arrives. */
+  /**
+   * Swing the arm to an angle, clamped to safe travel. Keeps holding once it
+   * arrives.
+   */
   public Command goToAngle(Angle angle) {
     return runRepeatedly(() -> {
-          m_goal = clampToTravel(angle);
-          m_io.setGoalAngleDegrees(m_goal.in(Degrees));
-        })
+      m_goal = clampToTravel(angle);
+      m_io.setGoalAngleDegrees(m_goal.in(Degrees));
+    })
         .until(this::atGoal)
         .named("Go To Angle");
   }
 
-  /** Spin the roller while this command runs. Stops it however the command ends. */
+  /**
+   * Spin the roller while this command runs. Stops it however the command ends.
+   */
   public Command runRoller(double output) {
     return runRepeatedly(() -> m_io.setRollerOutput(output))
         .whenCanceled(() -> m_io.setRollerOutput(0.0))
@@ -78,7 +89,10 @@ public class Arm implements Mechanism {
     return Math.abs(m_inputs.angleDegrees - m_goal.in(Degrees)) < ArmConstants.kTolerance.in(Degrees);
   }
 
-  /** Keeps 'angle' inside [kMinAngle, kMaxAngle] — there's no MathUtil.clamp to reach for here. */
+  /**
+   * Keeps 'angle' inside [kMinAngle, kMaxAngle] — there's no MathUtil.clamp to
+   * reach for here.
+   */
   private static Angle clampToTravel(Angle angle) {
     if (angle.gt(ArmConstants.kMaxAngle)) {
       return ArmConstants.kMaxAngle;
@@ -94,6 +108,6 @@ public class Arm implements Mechanism {
    * straight up — so a world angle becomes a drawing angle by subtracting it.
    */
   private static Angle toDrawingAngle(Angle armAngle) {
-    return armAngle.minus(ElevatorConstants.kCarriageAngle);
+    return armAngle.plus(Degrees.of(0));
   }
 }

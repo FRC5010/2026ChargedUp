@@ -195,7 +195,7 @@ public static final class ElevatorConstants {
   public static final Distance kTolerance = Centimeters.of(2);
 
       // The stick-figure view. The canvas is measured in meters, like the field.
-    public static final Distance kDisplayWidth = Meters.of(1.0);
+    public static final Distance kDisplayWidth = Meters.of(4.0);
     public static final Distance kDisplayHeight = Meters.of(2.0);
     public static final Distance kEffectorLength = Centimeters.of(25);
     public static final Color8Bit kMovingColor = new Color8Bit(Color.ORANGE);
